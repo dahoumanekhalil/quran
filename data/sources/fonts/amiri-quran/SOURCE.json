@@ -1,0 +1,26 @@
+{
+  "source": "Amiri (aliftype/amiri)",
+  "variant": "Amiri Quran (AmiriQuran.ttf) — Uthmani-shaping variant with Quranic marks",
+  "upstream_url": "https://github.com/aliftype/amiri",
+  "release_tag": "1.003",
+  "license": "SIL Open Font License 1.1",
+  "fetched_on": "2026-09-04T21:55:02Z",
+  "files": {
+    "AmiriQuran.ttf": {
+      "sha256": "e2a47644762d16bdfb6d33e0d8db8c6ff30beae84150ef5a705316bbd829455c",
+      "size_bytes": 136920
+    },
+    "OFL.txt": {
+      "sha256": "72de68e5954f4fdd24702292ef5a32f003ca960ec9330dc86e5eefb5dffb9b22",
+      "size_bytes": 4389
+    },
+    "README.md": {
+      "sha256": "44db47f8f96d56790af8385d72e5e376bc7af6630a6b29bf084ab63bb1ec5426",
+      "size_bytes": 2238
+    },
+    "amiri-1.003.zip": {
+      "sha256": "81af0aff7d2086d8af24cea7202f7546130997982534691373485cd96744d05e",
+      "size_bytes": 1033533
+    }
+  }
+}

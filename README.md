@@ -68,7 +68,8 @@ The application bundles or depends on the following works. Full license text is 
 |---|---|---|
 | Tanzil Uthmani Quran text (v1.1) | https://tanzil.net/ | CC BY 3.0 (verbatim only) |
 | `quran-center/quran-meta` (pagination + metadata) | https://github.com/quran-center/quran-meta | MIT |
-| Mushaf font (chosen in Phase 2) | TBD | TBD |
+| KFGQPC Uthmanic Hafs v2.2 (primary Mushaf font) | http://fonts.qurancomplex.gov.sa/ | KFGQPC EULA (free, unmodified) |
+| Amiri Quran v1.003 (alternate Mushaf font) | https://github.com/aliftype/amiri | SIL OFL 1.1 |
 
 ---
 

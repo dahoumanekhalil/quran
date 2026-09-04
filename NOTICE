@@ -32,5 +32,22 @@ Terms: as published by Quran Foundation at the URL above.
 
 ---
 
-Mushaf font (chosen in Phase 2)
-License: TBD — recorded in ADR-023 and this file when finalized.
+KFGQPC HAFS Uthmanic Script (v2.2)
+Copyright (c) 2010 by King Fahd Glorious Quran Printing Complex (KFGQPC),
+AlMadinah AlMunawarrah, Kingdom of Saudi Arabia.
+License: KFGQPC Electronic End-User License Agreement — free of cost;
+        Use, Copy, and Distribute permitted; Sell / Modify / Reverse-engineer
+        forbidden. Full text in LICENSES/KFGQPC-EULA.txt.
+Source: http://fonts.qurancomplex.gov.sa/ (vendored via
+        github.com/nuqayah/qpc-fonts).
+Attribution: the About screen credits KFGQPC and links to the source.
+Selected: ADR-0024 as the primary Mushaf font.
+
+---
+
+Amiri Quran (v1.003)
+Copyright (c) 2010-2023 Khaled Hosny (aliftype) and contributors.
+License: SIL Open Font License, Version 1.1. Full text in
+        LICENSES/SIL-OFL-1.1.txt.
+Source: https://github.com/aliftype/amiri
+Selected: ADR-0024 as documented alternate font (POST-MVP alt-font pathway).

@@ -1,0 +1,19 @@
+{
+  "source": "King Fahd Glorious Quran Printing Complex (KFGQPC)",
+  "variant": "UthmanicHafs v2.2 — general-purpose Uthmani text font (not the per-page mushaf fonts)",
+  "vendor_url_official": "https://fonts.qurancomplex.gov.sa/",
+  "mirror_url": "https://github.com/nuqayah/qpc-fonts (via redirect from mustafa0x/qpc-fonts)",
+  "mirror_path": "text-mushafs/UthmanicHafs_V22/uthmanic_hafs_v22.ttf",
+  "license": "KFGQPC copyright — see http://dm.qurancomplex.gov.sa/copyright-2/  (free redistribution allowed unmodified, credit required)",
+  "fetched_on": "2026-09-04T21:58:43Z",
+  "files": {
+    "uthmanic_hafs_v22.ttf": {
+      "sha256": "a6e59510dcaf3ec99db49427321a035ed94af555ffc7d27e7f430b5fd5e179f8",
+      "size_bytes": 297688
+    },
+    "README.md": {
+      "sha256": "ee62ced465bd32303fe02b0f6da4af17e654b969e99f22ce352fb650ab26bede",
+      "size_bytes": 1954
+    }
+  }
+}

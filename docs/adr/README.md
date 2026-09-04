@@ -44,3 +44,4 @@ Each ADR carries a **Review date**. Before every phase transition (as defined in
 | 0021 | Quran text source | Accepted |
 | 0022 | Pagination reference | Accepted |
 | 0023 | Build & test workflow (phone-first, cloud CI) | Accepted |
+| 0024 | Primary Mushaf font — KFGQPC Uthmanic Hafs v2.2 + Amiri Quran alt | Accepted |
