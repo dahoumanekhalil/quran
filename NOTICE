@@ -1,0 +1,36 @@
+Digital Mushaf
+Copyright (c) 2026 Khalil Dahoumane
+
+This product includes or depends on the following third-party works. Each
+retains its original license; full license text is in LICENSES/.
+
+---
+
+Tanzil Quran Text (Uthmani, Version 1.1)
+Copyright (c) 2007-2026 Tanzil Project
+License: Creative Commons Attribution 3.0 Unported (CC BY 3.0)
+Source: https://tanzil.net/
+Terms: Verbatim copies only — text may not be modified. Source attribution
+       to "Tanzil Project" and a link to https://tanzil.net/ are required
+       in any application that redistributes this text.
+Full license: LICENSES/CC-BY-3.0.txt
+
+---
+
+quran-center/quran-meta
+Copyright (c) quran-center contributors
+License: MIT
+Source: https://github.com/quran-center/quran-meta
+Full license: LICENSES/quran-meta-MIT.txt
+
+---
+
+Quran.com API (v4) — used for independent cross-source verification of the
+consonantal Quran text during the data pipeline validation stage.
+Source: https://quran.com/api
+Terms: as published by Quran Foundation at the URL above.
+
+---
+
+Mushaf font (chosen in Phase 2)
+License: TBD — recorded in ADR-023 and this file when finalized.

@@ -7,17 +7,17 @@
 
 ## Project Status
 
-**Current Phase:** Phase 0 — Project Preparation
-**Current Task:** TASK-001
-**Completed Tasks:** 0
-**Blocked Tasks:** None
+**Current Phase:** Phase 2 — Typography & Rendering Prototype (queued; blocked on ADR-0023 CI opt-in and TASK-025 font selection)
+**Current Task:** TASK-025 (Phase 2 kickoff)
+**Completed Tasks:** TASK-001..TASK-024 (Phase 0 backfilled 2026-09-04; Phase 1 frozen as content v1.0.0)
+**Blocked Tasks:** TASK-030 (Android project init) — blocked until developer opts in to cloud CI (per ADR-0023)
 **Critical Issues:** None
 **Release Readiness:** Not Ready
 
 ### Phase Progress Tracker
 
-- [ ] Phase 0 — Project Preparation
-- [ ] Phase 1 — Quran Data Foundation
+- [x] Phase 0 — Project Preparation
+- [x] Phase 1 — Quran Data Foundation (frozen: `data/output/RELEASE/quran-1.0.0.db`)
 - [ ] Phase 2 — Typography & Rendering Prototype
 - [ ] Phase 3 — Android Foundation
 - [ ] Phase 4 — Core Data & Domain

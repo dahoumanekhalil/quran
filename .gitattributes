@@ -1,0 +1,20 @@
+# Normalize line endings to LF in the repo, checkout per-platform.
+* text=auto eol=lf
+
+# Explicit binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.jar binary
+*.apk binary
+*.aab binary
+*.otf binary
+*.ttf binary
+*.db binary
+
+# Keep upstream files unchanged.
+data/sources/** -text

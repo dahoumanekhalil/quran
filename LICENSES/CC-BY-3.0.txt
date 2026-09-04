@@ -1,0 +1,54 @@
+Creative Commons Attribution 3.0 Unported (CC BY 3.0)
+
+License applying to the Tanzil Quran Text (Uthmani, Version 1.1), archived
+under `data/sources/tanzil-uthmani/1.1/`.
+
+Source: https://tanzil.net/
+License summary: https://creativecommons.org/licenses/by/3.0/
+License full text: https://creativecommons.org/licenses/by/3.0/legalcode
+
+Tanzil-specific terms of use (from the copyright header of the source files):
+
+    Permission is granted to copy and distribute verbatim copies
+    of this text, but CHANGING IT IS NOT ALLOWED.
+
+    This Quran text can be used in any website or application,
+    provided that its source (Tanzil Project) is clearly indicated,
+    and a link is made to tanzil.net to enable users to keep
+    track of changes.
+
+The application MUST:
+
+  1. Preserve the "Tanzil Project" attribution wherever the Quran text is
+     shown to users (in the About screen, in "credits", or equivalent).
+  2. Include a visible link to https://tanzil.net/ from the same surface.
+  3. Not modify the bytes of the imported Quran text (enforced by the
+     pipeline in TASK-017 and the Content Integrity Gate in TASK-024).
+
+--------------------------------------------------------------------------------
+
+CREATIVE COMMONS CORPORATION IS NOT A LAW FIRM AND DOES NOT PROVIDE LEGAL
+SERVICES. DISTRIBUTION OF THIS LICENSE DOES NOT CREATE AN ATTORNEY-CLIENT
+RELATIONSHIP. CREATIVE COMMONS PROVIDES THIS INFORMATION ON AN "AS-IS" BASIS.
+CREATIVE COMMONS MAKES NO WARRANTIES REGARDING THE INFORMATION PROVIDED, AND
+DISCLAIMS LIABILITY FOR DAMAGES RESULTING FROM ITS USE.
+
+License
+
+THE WORK (AS DEFINED BELOW) IS PROVIDED UNDER THE TERMS OF THIS CREATIVE
+COMMONS PUBLIC LICENSE ("CCPL" OR "LICENSE"). THE WORK IS PROTECTED BY
+COPYRIGHT AND/OR OTHER APPLICABLE LAW. ANY USE OF THE WORK OTHER THAN AS
+AUTHORIZED UNDER THIS LICENSE OR COPYRIGHT LAW IS PROHIBITED.
+
+BY EXERCISING ANY RIGHTS TO THE WORK PROVIDED HERE, YOU ACCEPT AND AGREE TO
+BE BOUND BY THE TERMS OF THIS LICENSE. TO THE EXTENT THIS LICENSE MAY BE
+CONSIDERED TO BE A CONTRACT, THE LICENSOR GRANTS YOU THE RIGHTS CONTAINED
+HERE IN CONSIDERATION OF YOUR ACCEPTANCE OF SUCH TERMS AND CONDITIONS.
+
+  ...
+
+The full license text is available at:
+  https://creativecommons.org/licenses/by/3.0/legalcode
+
+Downloaders using this repository should refer to that URL for the complete
+legal text of CC BY 3.0.
