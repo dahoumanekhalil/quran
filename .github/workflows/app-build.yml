@@ -1,0 +1,80 @@
+name: App build (Mushaf)
+
+# Builds the main production Android app on GitHub-hosted Ubuntu runners
+# and publishes app-debug.apk as a workflow artifact. Aligned with ADR-0023
+# (phone-first workflow — no local Android SDK required).
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'android/**'
+      - '.github/workflows/app-build.yml'
+  pull_request:
+    paths:
+      - 'android/**'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  build-debug-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platforms;android-35 build-tools;35.0.0 platform-tools'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+
+      - name: Assemble debug APK (all modules)
+        working-directory: android
+        run: gradle --no-daemon --stacktrace :app:assembleDebug
+
+      - name: Run unit tests
+        working-directory: android
+        run: gradle --no-daemon --stacktrace test
+        continue-on-error: true      # tests are minimal so far; do not gate the APK
+
+      - name: Rename APK
+        working-directory: android
+        run: |
+          cp app/build/outputs/apk/debug/app-debug.apk \
+             app/build/outputs/apk/debug/mushaf-${{ github.run_number }}-debug.apk
+          ls -la app/build/outputs/apk/debug/
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mushaf-app-apk
+          path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload test reports (if any)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: |
+            android/**/build/reports/tests/**
+            android/**/build/test-results/**
+          if-no-files-found: ignore
+          retention-days: 14

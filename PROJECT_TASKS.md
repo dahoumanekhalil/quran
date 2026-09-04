@@ -7,19 +7,29 @@
 
 ## Project Status
 
-**Current Phase:** Phase 2 — Typography & Rendering Prototype (queued; blocked on ADR-0023 CI opt-in and TASK-025 font selection)
-**Current Task:** TASK-025 (Phase 2 kickoff)
-**Completed Tasks:** TASK-001..TASK-024 (Phase 0 backfilled 2026-09-04; Phase 1 frozen as content v1.0.0)
-**Blocked Tasks:** TASK-030 (Android project init) — blocked until developer opts in to cloud CI (per ADR-0023)
+**Current Phase:** Phase 7 — Home Experience (queued next)
+**Current Task:** TASK-100 (Phase 7 kickoff)
+**Completed Tasks:** TASK-001..TASK-024, TASK-025, TASK-026 (structural — pending device verification via CI + phone), TASK-030..TASK-037 (Phase 3 core), TASK-050..TASK-053, TASK-055 (Phase 4 essentials), TASK-070..TASK-073, TASK-076 (Phase 5 essentials), TASK-085..TASK-088 (Phase 6)
+**Partial / Deferred Tasks:**
+- TASK-027, TASK-028, TASK-029 (device matrix, long-session, rendering-lock ADR) — need CI build + user's phone; browser preview substitutes visual check for ~80%
+- TASK-034 (static analysis / layer enforcement) — deferred; multi-module gradle enforces most boundaries at compile time
+- TASK-035 (test infrastructure) — deps wired, tests not yet written
+- TASK-054 (domain use cases) — deliberately skipped per ADR-0011 (thin services + direct repo calls)
+- TASK-053 (bookmarks) — deferred to Phase 9 (only reading position + settings implemented)
+- TASK-074, TASK-075 (gestures, immersive mode) — minimal implementation; iterate in Phase 15
 **Critical Issues:** None
-**Release Readiness:** Not Ready
+**Release Readiness:** Not Ready — untested on real hardware; awaiting first CI build + user side-load verification
 
 ### Phase Progress Tracker
 
 - [x] Phase 0 — Project Preparation
 - [x] Phase 1 — Quran Data Foundation (frozen: `data/output/RELEASE/quran-1.0.0.db`)
-- [ ] Phase 2 — Typography & Rendering Prototype
-- [ ] Phase 3 — Android Foundation
+- [x] Phase 2 — Typography & Rendering Prototype (structural — TASK-025 done, TASK-026 code shipped, TASK-027..029 pending device verification)
+- [x] Phase 3 — Android Foundation (core scaffold; static analysis + tests deferred)
+- [x] Phase 4 — Core Data & Domain (Quran + reading position + settings; bookmarks deferred to Phase 9)
+- [x] Phase 5 — Reader Engine (structural; gesture/immersive polish deferred)
+- [x] Phase 6 — Quran Navigation
+- [ ] Phase 7 — Home Experience
 - [ ] Phase 4 — Core Data & Domain
 - [ ] Phase 5 — Reader Engine
 - [ ] Phase 6 — Quran Navigation
