@@ -1,0 +1,34 @@
+{
+  "source": "quran-center/quran-meta",
+  "upstream_url": "https://github.com/quran-center/quran-meta",
+  "package_version": "6.1.1-6",
+  "git_commit": "a5dd4a46dc6f7830a4303e89c3b4b3a15a213ac9",
+  "license": "MIT",
+  "fetched_on": "2026-09-04T21:05:14Z",
+  "files": {
+    "src/lists/HafsLists.ts": {
+      "sha256": "49ddb293c92c8fb8d15ffe7ca09f5dd4bfedb8eb58c777e826525d867557d616",
+      "size_bytes": 15455
+    },
+    "src/lists/types.ts": {
+      "sha256": "62e1c763496d943bbb5ccbab8b46e7c579a94d65828757eb59ff3290faf8b51b",
+      "size_bytes": 1977
+    },
+    "src/types.ts": {
+      "sha256": "92a036d97a746d3d2317eb1b18268c04e6597f5f2f376f4f8b4d91ae41215dac",
+      "size_bytes": 8974
+    },
+    "src/i18n/surah.en.ts": {
+      "sha256": "07a25b0250376e6f03cc4d666078d7d53714aaf16a3ec5779ece5803b19a6882",
+      "size_bytes": 3911
+    },
+    "LICENSE": {
+      "sha256": "bae543d395b45f4ee9405e4c5acfa7b479d08ec756bde3ca2c41d0a59bf2f672",
+      "size_bytes": 1090
+    },
+    "package.json": {
+      "sha256": "242a7a9c1cab6c205ec8b6bb23557c19a9846b9827f92e8331e83294768dcb13",
+      "size_bytes": 3925
+    }
+  }
+}

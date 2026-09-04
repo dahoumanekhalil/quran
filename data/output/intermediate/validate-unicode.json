@@ -1,0 +1,32 @@
+{
+  "disallowed_char_count": 0,
+  "disallowed_chars_sample": [],
+  "duplicate_consecutive_count": 0,
+  "duplicate_consecutive_sample": [],
+  "passed": true,
+  "per_block": {
+    "ASCII space": 75775,
+    "Arabic": 634454
+  },
+  "quranic_marks_present": {
+    "U+0670 SUPERSCRIPT ALEF": 9726,
+    "U+0671 ALEF WASLA": 13483,
+    "U+06D6 SMALL HIGH LIGATURE SAD WITH LAM WITH ALEF MAKSURA": 1682,
+    "U+06D7 SMALL HIGH LIGATURE QAF WITH LAM WITH ALEF MAKSURA": 603,
+    "U+06D8 SMALL HIGH MEEM INITIAL FORM": 22,
+    "U+06DA SMALL HIGH JEEM": 1972,
+    "U+06DB SMALL HIGH THREE DOTS": 12,
+    "U+06DC SMALL HIGH SEEN": 7,
+    "U+06DD END OF AYAH": 0,
+    "U+06DE START OF RUB EL HIZB": 199,
+    "U+06E9 PLACE OF SAJDAH": 15,
+    "U+06ED SMALL LOW MEEM": 99
+  },
+  "totals": {
+    "ayahs_scanned": 6236,
+    "distinct_codepoints": 70,
+    "total_chars": 710229
+  },
+  "whitespace_anomalies_sample": [],
+  "whitespace_anomaly_count": 0
+}

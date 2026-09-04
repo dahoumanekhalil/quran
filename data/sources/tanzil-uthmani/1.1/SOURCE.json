@@ -1,0 +1,25 @@
+{
+  "source": "Tanzil Project",
+  "version": "1.1",
+  "release_date": "February 2021",
+  "license": "CC BY 3.0 (verbatim copies only; text may not be modified)",
+  "url_base": "https://tanzil.net/pub/download/index.php",
+  "fetched_on": "2026-09-04T21:03:56Z",
+  "files": {
+    "quran-uthmani.xml": {
+      "sha256": "c5052534d63d3856ce25413ff464d0b609f90169a202a1615aa8707efec81244",
+      "size_bytes": 1541984,
+      "params": "marks=true&sajdah=true&rub=true&tatweel=true&quranType=uthmani&outType=xml"
+    },
+    "quran-uthmani.txt": {
+      "sha256": "7f30c647331a61100ebf24a80507dc0fcdd9f2df97f1312b5b2dfcb982a7f326",
+      "size_bytes": 1396684,
+      "params": "marks=true&sajdah=true&rub=true&tatweel=true&quranType=uthmani&outType=txt-2"
+    },
+    "quran-uthmani-min.xml": {
+      "sha256": "55e418f56115757e05262edbe57c80de08d176deda57a35870efc928c8ccd6cc",
+      "size_bytes": 1343922,
+      "params": "marks=false&sajdah=false&rub=false&tatweel=false&quranType=uthmani-min&outType=xml"
+    }
+  }
+}

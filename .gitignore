@@ -1,0 +1,41 @@
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*~
+.vscode/
+.idea/
+*.iml
+
+# --- Python (pipeline) ---
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+.env
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# --- Android (Phase 3+) ---
+*.apk
+*.aab
+*.dex
+*.class
+local.properties
+.gradle/
+build/
+!/gradle/wrapper/gradle-wrapper.jar
+captures/
+.externalNativeBuild/
+.cxx/
+
+# --- Secrets ---
+*.jks
+*.keystore
+key.properties
+signing.properties
+google-services.json
+*.env

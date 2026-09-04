@@ -1,0 +1,179 @@
+{
+  "last_run_utc": "2026-09-04T21:20:40Z",
+  "stages": {
+    "build_search_index": {
+      "inputs": {
+        "quran_db_pre": {
+          "path": "output\\intermediate\\quran.sql",
+          "sha256": "05e9f216186f812e14b97d4a55306b03659db5b644e958a82ceed78ddbbe8fa3"
+        }
+      },
+      "outputs": {
+        "quran_db": {
+          "path": "output\\quran.db",
+          "sha256": "0ba78b6ab99f57a5688adc572f35ccf0568716a48d4424378d73cfd91c0b093e"
+        },
+        "search_report": {
+          "path": "output\\intermediate\\search-index.json",
+          "sha256": "798afe8483f651033736f1f5d0941d01382d5bdacab92cc42cdc40f9449175ad"
+        }
+      }
+    },
+    "cross_source_diff": {
+      "inputs": {
+        "corpus": {
+          "path": "output\\intermediate\\corpus.json",
+          "sha256": "222284c89bc94563a1f7cb329bcf2f7f06e4dea6740e5e0b568790f7bc6ffb63"
+        },
+        "quran_com_verses": {
+          "path": "sources\\quran-com\\v4\\verses-uthmani.json",
+          "sha256": "3754c592dd15d7047d5b4339737ad3171c5c1d431a8c3e4c1eee7781c135d58c"
+        }
+      },
+      "outputs": {
+        "diff_json": {
+          "path": "output\\intermediate\\cross-source-diff.json",
+          "sha256": "2e6601718eb173eb1a6faf996a45be96d721c1ebf85c0021af64c39c7ae54f37"
+        },
+        "diff_report_md": {
+          "path": "output\\intermediate\\cross-source-diff-report.md",
+          "sha256": "3a2d4a3e2155a53f6a703c78f4453006e13cea72b4ec4925e800956316d97244"
+        }
+      }
+    },
+    "merge": {
+      "inputs": {
+        "hafs_meta": {
+          "path": "output\\intermediate\\hafs-meta.json",
+          "sha256": "c3ffdeb2d20cf95928d1b941f9c1216a022c60007a63b2ba1ae1f3c8158b511d"
+        },
+        "tanzil_raw": {
+          "path": "output\\intermediate\\tanzil-raw.json",
+          "sha256": "202176f130f304120394ee7bef3a6a8cab647a666cf6b5592814b3bc872440c7"
+        }
+      },
+      "outputs": {
+        "corpus": {
+          "path": "output\\intermediate\\corpus.json",
+          "sha256": "222284c89bc94563a1f7cb329bcf2f7f06e4dea6740e5e0b568790f7bc6ffb63"
+        },
+        "indices": {
+          "path": "output\\intermediate\\indices.json",
+          "sha256": "f914bff41e49a3f1e28366fb3d0a1c197c8384bf5614e7d80ebbf36a3adef123"
+        }
+      }
+    },
+    "package_sqlite": {
+      "inputs": {
+        "corpus": {
+          "path": "output\\intermediate\\corpus.json",
+          "sha256": "222284c89bc94563a1f7cb329bcf2f7f06e4dea6740e5e0b568790f7bc6ffb63"
+        },
+        "indices": {
+          "path": "output\\intermediate\\indices.json",
+          "sha256": "f914bff41e49a3f1e28366fb3d0a1c197c8384bf5614e7d80ebbf36a3adef123"
+        }
+      },
+      "outputs": {
+        "quran_db": {
+          "path": "output\\quran.db",
+          "sha256": "c765be31c7e8503fc2efc815b71d12066cd2f812e01b4990964d2deec1e492c2"
+        },
+        "quran_sql_dump": {
+          "path": "output\\intermediate\\quran.sql",
+          "sha256": "05e9f216186f812e14b97d4a55306b03659db5b644e958a82ceed78ddbbe8fa3"
+        }
+      }
+    },
+    "parse_meta": {
+      "inputs": {
+        "hafs_lists_ts": {
+          "path": "sources\\quran-meta\\repo\\src\\lists\\HafsLists.ts",
+          "sha256": "49ddb293c92c8fb8d15ffe7ca09f5dd4bfedb8eb58c777e826525d867557d616"
+        },
+        "surah_names_en_ts": {
+          "path": "sources\\quran-meta\\repo\\src\\i18n\\surah.en.ts",
+          "sha256": "07a25b0250376e6f03cc4d666078d7d53714aaf16a3ec5779ece5803b19a6882"
+        }
+      },
+      "outputs": {
+        "hafs_meta": {
+          "path": "output\\intermediate\\hafs-meta.json",
+          "sha256": "c3ffdeb2d20cf95928d1b941f9c1216a022c60007a63b2ba1ae1f3c8158b511d"
+        }
+      }
+    },
+    "parse_tanzil": {
+      "inputs": {
+        "tanzil_xml": {
+          "path": "sources\\tanzil-uthmani\\1.1\\quran-uthmani.xml",
+          "sha256": "c5052534d63d3856ce25413ff464d0b609f90169a202a1615aa8707efec81244"
+        }
+      },
+      "outputs": {
+        "corpus_sha256": {
+          "path": "output\\intermediate\\tanzil-corpus.sha256",
+          "sha256": "acad4aaf3cce9a7baba1e07d07271b7f78e9f2c6c63b2fa17706bc821258d5f9"
+        },
+        "tanzil_raw": {
+          "path": "output\\intermediate\\tanzil-raw.json",
+          "sha256": "202176f130f304120394ee7bef3a6a8cab647a666cf6b5592814b3bc872440c7"
+        }
+      }
+    },
+    "release": {
+      "inputs": {
+        "quran_db": {
+          "path": "output\\quran.db",
+          "sha256": "0ba78b6ab99f57a5688adc572f35ccf0568716a48d4424378d73cfd91c0b093e"
+        }
+      },
+      "outputs": {
+        "content_manifest_md": {
+          "path": "output\\RELEASE\\CONTENT_MANIFEST.md",
+          "sha256": "da5e1915a8094d55a1272477ca3307e64b15660906e7d2a924496d36e754d205"
+        },
+        "release_db": {
+          "path": "output\\RELEASE\\quran-1.0.0.db",
+          "sha256": "0ba78b6ab99f57a5688adc572f35ccf0568716a48d4424378d73cfd91c0b093e"
+        }
+      }
+    },
+    "validate_structural": {
+      "inputs": {
+        "corpus": {
+          "path": "output\\intermediate\\corpus.json",
+          "sha256": "222284c89bc94563a1f7cb329bcf2f7f06e4dea6740e5e0b568790f7bc6ffb63"
+        },
+        "indices": {
+          "path": "output\\intermediate\\indices.json",
+          "sha256": "f914bff41e49a3f1e28366fb3d0a1c197c8384bf5614e7d80ebbf36a3adef123"
+        }
+      },
+      "outputs": {
+        "report": {
+          "path": "output\\intermediate\\validate-structural.json",
+          "sha256": "f74bcd5a87fcd6d962751a64e09d3c13051592848200b11a3794612f65ecc957"
+        }
+      }
+    },
+    "validate_unicode": {
+      "inputs": {
+        "corpus": {
+          "path": "output\\intermediate\\corpus.json",
+          "sha256": "222284c89bc94563a1f7cb329bcf2f7f06e4dea6740e5e0b568790f7bc6ffb63"
+        }
+      },
+      "outputs": {
+        "profile_md": {
+          "path": "output\\intermediate\\unicode-profile.md",
+          "sha256": "69eda421c4d08be45b8e2cf37027b2c58367121c5017e798f4a5969bfdedaebe"
+        },
+        "report_json": {
+          "path": "output\\intermediate\\validate-unicode.json",
+          "sha256": "27c6e668f1fd85bdbdbf5168bd977781e9a27d1d43629af388f371f3891b84b3"
+        }
+      }
+    }
+  }
+}

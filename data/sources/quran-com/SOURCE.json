@@ -1,0 +1,14 @@
+{
+  "source": "Quran.com API v4",
+  "endpoint": "https://api.quran.com/api/v4/quran/verses/uthmani",
+  "text_provenance": "KFGQPC (King Fahd Complex) Uthmani text — independent of Tanzil",
+  "license": "per quran.com/api — see https://quran.com/api",
+  "fetched_on": "2026-09-04T21:20:19Z",
+  "files": {
+    "v4/verses-uthmani.json": {
+      "sha256": "3754c592dd15d7047d5b4339737ad3171c5c1d431a8c3e4c1eee7781c135d58c",
+      "size_bytes": 1654246,
+      "verse_count": 6236
+    }
+  }
+}

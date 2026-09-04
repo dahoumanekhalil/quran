@@ -1,0 +1,20 @@
+{
+  "counts": {
+    "A_ayahs": 6236,
+    "B_ayahs": 6236,
+    "byte_identical_of_common": 6126,
+    "common": 6236,
+    "only_in_A": 0,
+    "only_in_B": 0,
+    "skeleton_diffs_of_common": 0,
+    "skeleton_equal_of_common": 6236
+  },
+  "only_in_A_sample": [],
+  "only_in_B_sample": [],
+  "passed": true,
+  "skeleton_diffs_sample": [],
+  "sources": {
+    "A": "Tanzil Project Uthmani 1.1 (data/sources/tanzil-uthmani/1.1/quran-uthmani.xml)",
+    "B": "Quran.com API v4 Uthmani (data/sources/quran-com/v4/verses-uthmani.json) — KFGQPC-derived"
+  }
+}

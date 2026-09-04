@@ -1,0 +1,86 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["eslint", "typescript", "unicorn", "oxc", "import", "jsdoc", "node", "promise", "vitest"],
+  "categories": {
+    "correctness": "error",
+    // "nursery": "warn",
+    // "pedantic": "warn"
+    "perf": "warn",
+    // "restriction": "warn",
+    "style": "allow",
+    "suspicious": "warn"
+  },
+  "env": {
+    "builtin": true,
+    "browser": true
+  },
+  "options": {
+    "typeAware": true
+  },
+  "rules": {
+    "no-case-declarations": "error",
+    "no-empty": "error",
+    "no-fallthrough": "error",
+    "no-prototype-builtins": "error",
+    "no-redeclare": "error",
+    "no-regex-spaces": "error",
+    "no-unexpected-multiline": "error",
+    "@typescript-eslint/ban-ts-comment": "error",
+    "no-array-constructor": "error",
+    "@typescript-eslint/no-empty-object-type": "error",
+    "@typescript-eslint/no-explicit-any": "error",
+    "@typescript-eslint/no-namespace": "error",
+    "@typescript-eslint/no-require-imports": "error",
+    "@typescript-eslint/no-unnecessary-type-constraint": "error",
+    "@typescript-eslint/no-unsafe-function-type": "error",
+    "typescript/consistent-type-imports": "error",
+    "typescript/no-unsafe-type-assertion": "off",
+    "jsdoc/check-tag-names": "off",
+    "vitest/require-to-throw-message": "off",
+    "vitest/valid-title": "off",
+    "import/no-duplicates": "error",
+    "react/jsx-curly-brace-presence": "off",
+    "react/self-closing-comp": "off"
+  },
+  "ignorePatterns": ["**/node_modules/", "**/coverage/", "**/dist/", "**/docs/", "**/lib_cjs/", "**/lib_es/"],
+  "overrides": [
+    {
+      "files": ["src/**.{js,ts,mjs,cjs,ts,mts,jsx,tsx}"],
+      "env": {
+        "browser": true,
+        "commonjs": true,
+        "node": true,
+        "shared-node-browser": true
+      }
+    },
+    {
+      "files": ["examples/**.{js,ts,mjs,cjs,ts,mts,jsx,tsx}"],
+      "env": {
+        "browser": true,
+        "commonjs": true,
+        "node": true,
+        "shared-node-browser": true
+      }
+    },
+    {
+      "files": ["tests/*.{js,mjs,cjs,ts,mts,jsx,tsx}"],
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "off"
+      },
+      "env": {
+        "browser": true,
+        "commonjs": true,
+        "jest": true,
+        "mocha": true,
+        "node": true,
+        "shared-node-browser": true
+      }
+    },
+    {
+      "files": ["tests/RiwayaListsConsistency.test.ts"],
+      "rules": {
+        "vitest/no-conditional-expect": "off"
+      }
+    }
+  ]
+}

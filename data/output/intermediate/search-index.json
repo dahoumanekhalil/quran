@@ -1,0 +1,120 @@
+{
+  "failures": [],
+  "passed": true,
+  "queries": [
+    {
+      "expected_include_gid": 2,
+      "expected_min_hits": 1,
+      "hits": 4,
+      "passed": true,
+      "query": "الحمد لله رب العالمين",
+      "query_normalized": "لحمد لله رب لعلمين",
+      "sample_gids": [
+        2,
+        1374,
+        4133,
+        4198
+      ]
+    },
+    {
+      "expected_include_gid": 4,
+      "expected_min_hits": 1,
+      "hits": 1,
+      "passed": true,
+      "query": "مالك يوم الدين",
+      "query_normalized": "ملك يوم لدين",
+      "sample_gids": [
+        4
+      ]
+    },
+    {
+      "expected_include_gid": 6222,
+      "expected_min_hits": 1,
+      "hits": 1,
+      "passed": true,
+      "query": "قل هو الله احد",
+      "query_normalized": "قل هو لله حد",
+      "sample_gids": [
+        6222
+      ]
+    },
+    {
+      "expected_include_gid": 6226,
+      "expected_min_hits": 1,
+      "hits": 1,
+      "passed": true,
+      "query": "قل اعوذ برب الفلق",
+      "query_normalized": "قل عوذ برب لفلق",
+      "sample_gids": [
+        6226
+      ]
+    },
+    {
+      "expected_include_gid": 6231,
+      "expected_min_hits": 1,
+      "hits": 1,
+      "passed": true,
+      "query": "قل اعوذ برب الناس",
+      "query_normalized": "قل عوذ برب لنس",
+      "sample_gids": [
+        6231
+      ]
+    },
+    {
+      "expected_include_gid": 1,
+      "expected_min_hits": 1,
+      "hits": 2,
+      "passed": true,
+      "query": "بسم الله الرحمن الرحيم",
+      "query_normalized": "بسم لله لرحمن لرحيم",
+      "sample_gids": [
+        1,
+        3189
+      ]
+    },
+    {
+      "expected_include_gid": null,
+      "expected_min_hits": 500,
+      "hits": 1640,
+      "passed": true,
+      "query": "الله",
+      "query_normalized": "لله",
+      "sample_gids": [
+        1,
+        2,
+        14,
+        16,
+        17
+      ]
+    },
+    {
+      "expected_include_gid": null,
+      "expected_min_hits": 3,
+      "hits": 6,
+      "passed": true,
+      "query": "الرحمن الرحيم",
+      "query_normalized": "لرحمن لرحيم",
+      "sample_gids": [
+        1,
+        3,
+        170,
+        3189,
+        4220
+      ]
+    },
+    {
+      "expected_include_gid": 1,
+      "expected_min_hits": 1,
+      "hits": 2,
+      "passed": true,
+      "query": "بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ",
+      "query_normalized": "بسم لله لرحمن لرحيم",
+      "sample_gids": [
+        1,
+        3189
+      ]
+    }
+  ],
+  "text_uthmani_sha256_after": "3a802babd61fd0835121feea6c054e16df4809417968e1f7b58aa18cdbae6e66",
+  "text_uthmani_sha256_before": "3a802babd61fd0835121feea6c054e16df4809417968e1f7b58aa18cdbae6e66"
+}

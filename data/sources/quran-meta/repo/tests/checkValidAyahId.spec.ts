@@ -1,0 +1,53 @@
+import { checkValidAyahId, isValidAyahId } from "../src"
+import { meta } from "../src/hafs"
+
+describe(checkValidAyahId, () => {
+  it("should throw RangeError for ayah id less than 1", () => {
+    expect(() => checkValidAyahId(0, meta)).toThrow(RangeError)
+    expect(() => checkValidAyahId(-1, meta)).toThrow(RangeError)
+  })
+
+  it("should throw RangeError for ayah id greater than total number of ayas", () => {
+    expect(() => checkValidAyahId(meta.numAyahs + 1, meta)).toThrow(RangeError)
+    expect(() => checkValidAyahId(Number.MAX_SAFE_INTEGER, meta)).toThrow(RangeError)
+  })
+
+  it("should throw TypeError for non-integer ayah id", () => {
+    expect(() => checkValidAyahId(1.5, meta)).toThrow(TypeError)
+    expect(() => checkValidAyahId(2.99, meta)).toThrow(TypeError)
+    expect(() => checkValidAyahId(Math.PI, meta)).toThrow(TypeError)
+  })
+
+  it("should throw TypeError for NaN", () => {
+    expect(() => checkValidAyahId(Number.NaN, meta)).toThrow(TypeError)
+  })
+
+  it("should throw TypeError for Infinity", () => {
+    expect(() => checkValidAyahId(Number.POSITIVE_INFINITY, meta)).toThrow(TypeError)
+    expect(() => checkValidAyahId(Number.NEGATIVE_INFINITY, meta)).toThrow(TypeError)
+  })
+
+  it("should handle checkOnly", () => {
+    expect(isValidAyahId(1, meta)).toBeTruthy()
+    expect(isValidAyahId(meta.numAyahs, meta)).toBeTruthy()
+    expect(isValidAyahId(Math.floor(meta.numAyahs / 2), meta)).toBeTruthy()
+    expect(isValidAyahId(0, meta)).toBeFalsy()
+    expect(isValidAyahId(meta.numAyahs + 1, meta)).toBeFalsy()
+    expect(isValidAyahId(1.5, meta)).toBeFalsy()
+    expect(isValidAyahId(Number.NaN, meta)).toBeFalsy()
+    expect(isValidAyahId(Infinity, meta)).toBeFalsy()
+  })
+
+  it("should handle edge cases correctly", () => {
+    expect(checkValidAyahId(1, meta)).toBeUndefined()
+    expect(checkValidAyahId(meta.numAyahs, meta)).toBeUndefined()
+    expect(() => checkValidAyahId(meta.numAyahs + 0.5, meta)).toThrow(TypeError)
+    expect(checkValidAyahId(Math.floor(meta.numAyahs / 2), meta)).toBeUndefined()
+  })
+
+  it("should throw TypeError for non-number ayah id", () => {
+    expect(() => checkValidAyahId("1" as any, meta)).toThrow(TypeError)
+    expect(() => checkValidAyahId(null as any, meta)).toThrow(TypeError)
+    expect(() => checkValidAyahId(undefined as any, meta)).toThrow(TypeError)
+  })
+})

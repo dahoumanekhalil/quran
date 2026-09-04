@@ -1,0 +1,16 @@
+{
+  "failure_count": 0,
+  "failures": [],
+  "passed": true,
+  "totals": {
+    "ayahs": 6236,
+    "hizb": 60,
+    "juz": 30,
+    "manzil": 7,
+    "pages": 604,
+    "rub": 240,
+    "ruku": 556,
+    "sajda": 15,
+    "surahs": 114
+  }
+}
