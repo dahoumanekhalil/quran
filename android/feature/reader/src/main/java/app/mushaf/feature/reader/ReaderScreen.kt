@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -22,7 +23,10 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -66,6 +70,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 @Composable
 fun ReaderRoute(
     onOpenNavigation: () -> Unit,
+    onOpenSearch: () -> Unit,
     initialPage: Int? = null,
     viewModel: ReaderViewModel = hiltViewModel(),
 ) {
@@ -80,6 +85,7 @@ fun ReaderRoute(
         loadPage = { viewModel.loadPage(it) },
         onEvent = viewModel::onEvent,
         onOpenNavigation = onOpenNavigation,
+        onOpenSearch = onOpenSearch,
     )
 }
 
@@ -89,6 +95,7 @@ fun ReaderContent(
     loadPage: suspend (Int) -> Page,
     onEvent: (ReaderEvent) -> Unit,
     onOpenNavigation: () -> Unit,
+    onOpenSearch: () -> Unit,
 ) {
     if (state.loading) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -182,7 +189,12 @@ fun ReaderContent(
             ) {
                 TopChrome(
                     currentPage = state.currentPageNumber,
+                    surahNameAr = state.currentSurahNameAr,
+                    juzNumber = state.currentJuzNumber,
+                    isBookmarked = state.isCurrentPageBookmarked,
                     onOpenNavigation = onOpenNavigation,
+                    onOpenSearch = onOpenSearch,
+                    onToggleBookmark = { onEvent(ReaderEvent.ToggleBookmark) },
                 )
             }
         }
@@ -220,9 +232,15 @@ private fun TapZone(
 @Composable
 private fun TopChrome(
     currentPage: Int,
+    surahNameAr: String?,
+    juzNumber: Int?,
+    isBookmarked: Boolean,
     onOpenNavigation: () -> Unit,
+    onOpenSearch: () -> Unit,
+    onToggleBookmark: () -> Unit,
 ) {
-    // Simple, quiet top chrome: menu button + page counter. Charter — Controls > Decoration.
+    // Quiet, two-line reading-context strip: Arabic surah name up top, then the
+    // page/juz reference below. Charter — Controls > Decoration.
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
         Box(
             Modifier
@@ -233,12 +251,39 @@ private fun TopChrome(
             IconButton(onClick = onOpenNavigation, modifier = Modifier.align(Alignment.CenterStart)) {
                 Icon(Icons.Filled.Menu, contentDescription = "Navigation")
             }
-            Text(
-                text = "Page $currentPage / $TOTAL_PAGES",
-                style = MaterialTheme.typography.labelMedium,
-                color = MushafColors.Muted,
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(2.dp),
                 modifier = Modifier.align(Alignment.Center),
-            )
+            ) {
+                if (!surahNameAr.isNullOrBlank()) {
+                    Text(
+                        text = surahNameAr,
+                        fontFamily = MushafArabicFont,
+                        fontSize = 16.sp,
+                        color = MushafColors.Muted,
+                    )
+                }
+                Text(
+                    text = buildString {
+                        if (juzNumber != null) append("Juz ").append(juzNumber).append(" • ")
+                        append("Page ").append(currentPage).append(" / ").append(TOTAL_PAGES)
+                    },
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MushafColors.Muted,
+                )
+            }
+            Row(modifier = Modifier.align(Alignment.CenterEnd)) {
+                IconButton(onClick = onToggleBookmark) {
+                    Icon(
+                        imageVector = if (isBookmarked) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
+                        contentDescription = if (isBookmarked) "Remove bookmark" else "Add bookmark",
+                    )
+                }
+                IconButton(onClick = onOpenSearch) {
+                    Icon(Icons.Filled.Search, contentDescription = "Search")
+                }
+            }
         }
     }
 }

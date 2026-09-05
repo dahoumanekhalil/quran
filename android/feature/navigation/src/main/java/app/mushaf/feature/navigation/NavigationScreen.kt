@@ -25,22 +25,32 @@ import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.mushaf.core.designsystem.MushafArabicFont
 import app.mushaf.core.designsystem.MushafColors
+import app.mushaf.core.domain.model.Bookmark
 import app.mushaf.core.domain.model.Juz
 import app.mushaf.core.domain.model.Surah
+import java.text.DateFormat
+import java.util.Date
 
 @Composable
 fun NavigationRoute(
     onJumpToPage: (Int) -> Unit,
+    onOpenSettings: () -> Unit,
     onClose: () -> Unit,
     viewModel: NavigationViewModel = hiltViewModel(),
 ) {
@@ -50,7 +60,9 @@ fun NavigationRoute(
         state = state,
         onTabSelected = viewModel::onTabSelected,
         onSurahClick = { surah -> viewModel.jumpToSurah(surah.number) { onClose() } },
-        onJuzClick   = { juz   -> viewModel.jumpToJuz(juz.number)   { onClose() } },
+        onJuzClick = { juz -> viewModel.jumpToJuz(juz.number) { onClose() } },
+        onBookmarkClick = { bm -> viewModel.jumpToPage(bm.pageNumber) { onClose() } },
+        onBookmarkRemove = viewModel::removeBookmark,
         onJumpInputChanged = viewModel::onJumpPageInputChanged,
         onJumpConfirm = {
             val page = viewModel.resolveJumpPage()
@@ -61,6 +73,7 @@ fun NavigationRoute(
                 }
             }
         },
+        onOpenSettings = onOpenSettings,
     )
 }
 
@@ -70,16 +83,27 @@ fun NavigationContent(
     onTabSelected: (NavTab) -> Unit,
     onSurahClick: (Surah) -> Unit,
     onJuzClick: (Juz) -> Unit,
+    onBookmarkClick: (Bookmark) -> Unit,
+    onBookmarkRemove: (Int) -> Unit,
     onJumpInputChanged: (String) -> Unit,
     onJumpConfirm: () -> Unit,
+    onOpenSettings: () -> Unit,
 ) {
     Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).systemBarsPadding()) {
-        Text(
-            "Navigation",
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 16.dp),
-            textAlign = TextAlign.Center,
-        )
+        Box(Modifier.fillMaxWidth()) {
+            Text(
+                "Navigation",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 16.dp),
+                textAlign = TextAlign.Center,
+            )
+            IconButton(
+                onClick = onOpenSettings,
+                modifier = Modifier.align(Alignment.CenterEnd).padding(end = 8.dp),
+            ) {
+                Icon(Icons.Filled.Settings, contentDescription = "Settings")
+            }
+        }
         TabRow(selectedTabIndex = state.selectedTab.ordinal) {
             NavTab.entries.forEach { t ->
                 Tab(
@@ -103,6 +127,11 @@ fun NavigationContent(
                         error = state.jumpPageError,
                         onInputChanged = onJumpInputChanged,
                         onConfirm = onJumpConfirm,
+                    )
+                    NavTab.BOOKMARKS -> BookmarkList(
+                        bookmarks = state.bookmarks,
+                        onClick = onBookmarkClick,
+                        onRemove = onBookmarkRemove,
                     )
                 }
             }
@@ -205,8 +234,69 @@ private fun PageJump(
     }
 }
 
+@Composable
+private fun BookmarkList(
+    bookmarks: List<Bookmark>,
+    onClick: (Bookmark) -> Unit,
+    onRemove: (Int) -> Unit,
+) {
+    if (bookmarks.isEmpty()) {
+        Column(
+            Modifier.fillMaxSize().padding(32.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                "No bookmarks yet",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MushafColors.Muted,
+                textAlign = TextAlign.Center,
+            )
+            Text(
+                "Tap the ribbon icon on any page to save it.",
+                style = MaterialTheme.typography.labelSmall,
+                color = MushafColors.Muted,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+        }
+        return
+    }
+
+    val dateFormat = remember { DateFormat.getDateInstance(DateFormat.MEDIUM) }
+    LazyColumn(contentPadding = PaddingValues(vertical = 8.dp)) {
+        items(bookmarks, key = { "${it.pageNumber}:${it.ayahGlobalIndex ?: 0}" }) { bm ->
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .clickable { onClick(bm) }
+                    .padding(horizontal = 20.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        text = "Page ${bm.pageNumber}",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Medium,
+                    )
+                    Text(
+                        text = "Saved ${dateFormat.format(Date(bm.createdAtEpochMillis))}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MushafColors.Muted,
+                    )
+                }
+                IconButton(onClick = { onRemove(bm.pageNumber) }) {
+                    Icon(Icons.Filled.Delete, contentDescription = "Remove bookmark")
+                }
+            }
+            HorizontalDivider(color = MushafColors.Muted.copy(alpha = 0.15f))
+        }
+    }
+}
+
 private fun NavTab.label(): String = when (this) {
     NavTab.SURAH -> "Surahs"
     NavTab.JUZ -> "Juz"
     NavTab.PAGE -> "Page"
+    NavTab.BOOKMARKS -> "Saved"
 }

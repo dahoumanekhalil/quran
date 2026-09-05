@@ -5,6 +5,8 @@ import app.mushaf.core.domain.model.Juz
 import app.mushaf.core.domain.model.Page
 import app.mushaf.core.domain.model.Surah
 import app.mushaf.core.domain.repository.QuranRepository
+import app.mushaf.core.domain.search.SearchHit
+import app.mushaf.core.domain.search.SearchNormalizer
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -41,5 +43,14 @@ class QuranRepositoryImpl @Inject constructor(
     override suspend fun pageOfJuzStart(juzNumber: Int): Int {
         require(juzNumber in 1..30)
         return dao.pageOfJuzStart(juzNumber)
+    }
+
+    override suspend fun search(query: String, limit: Int): List<SearchHit> {
+        val normalized = SearchNormalizer.normalize(query)
+        if (normalized.isEmpty()) return emptyList()
+        // FTS5 MATCH treats each whitespace-separated token as a required term.
+        // Users get "phrase-of-words" AND semantics by default — matches the
+        // canonical query suite the pipeline validates.
+        return dao.search(normalized, limit.coerceIn(1, 200))
     }
 }

@@ -3,6 +3,7 @@ package app.mushaf.core.domain.repository
 import app.mushaf.core.domain.model.Juz
 import app.mushaf.core.domain.model.Page
 import app.mushaf.core.domain.model.Surah
+import app.mushaf.core.domain.search.SearchHit
 
 /**
  * Read-only access to the frozen Quran content.
@@ -28,4 +29,11 @@ interface QuranRepository {
 
     /** Convenience — page number containing the first ayah of a juz. */
     suspend fun pageOfJuzStart(juzNumber: Int): Int
+
+    /**
+     * Full-text search over the diacritics-stripped skeleton index.
+     * Empty/whitespace-only queries return an empty list.
+     * Callers pass raw user text; the implementation normalizes it.
+     */
+    suspend fun search(query: String, limit: Int = 50): List<SearchHit>
 }

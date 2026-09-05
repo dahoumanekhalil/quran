@@ -1,8 +1,10 @@
 package app.mushaf.core.data.di
 
+import app.mushaf.core.data.BookmarksRepositoryImpl
 import app.mushaf.core.data.QuranRepositoryImpl
 import app.mushaf.core.data.ReadingPositionRepositoryImpl
 import app.mushaf.core.data.SettingsRepositoryImpl
+import app.mushaf.core.domain.repository.BookmarksRepository
 import app.mushaf.core.domain.repository.QuranRepository
 import app.mushaf.core.domain.repository.ReadingPositionRepository
 import app.mushaf.core.domain.repository.SettingsRepository
@@ -24,4 +26,7 @@ abstract class DataModule {
 
     @Binds @Singleton
     abstract fun bindSettingsRepository(impl: SettingsRepositoryImpl): SettingsRepository
+
+    @Binds @Singleton
+    abstract fun bindBookmarksRepository(impl: BookmarksRepositoryImpl): BookmarksRepository
 }

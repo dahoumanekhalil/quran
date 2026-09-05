@@ -3,12 +3,15 @@ package app.mushaf.feature.navigation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.mushaf.core.domain.model.ReadingPosition
+import app.mushaf.core.domain.repository.BookmarksRepository
 import app.mushaf.core.domain.repository.QuranRepository
 import app.mushaf.core.domain.repository.ReadingPositionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -17,6 +20,7 @@ import javax.inject.Inject
 class NavigationViewModel @Inject constructor(
     private val quranRepository: QuranRepository,
     private val readingPositionRepository: ReadingPositionRepository,
+    private val bookmarksRepository: BookmarksRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(NavigationUiState())
@@ -28,6 +32,10 @@ class NavigationViewModel @Inject constructor(
             val juz = quranRepository.getAllJuz()
             _uiState.update { it.copy(loading = false, surahs = surahs, juz = juz) }
         }
+        // Reactive bookmarks — list updates whenever the reader ribbon toggles.
+        bookmarksRepository.observe()
+            .onEach { list -> _uiState.update { it.copy(bookmarks = list) } }
+            .launchIn(viewModelScope)
     }
 
     fun onTabSelected(tab: NavTab) {
@@ -73,6 +81,10 @@ class NavigationViewModel @Inject constructor(
             )
             andThen()
         }
+    }
+
+    fun removeBookmark(pageNumber: Int) {
+        viewModelScope.launch { bookmarksRepository.remove(pageNumber) }
     }
 
     /** Returns the target page after validating, or null; sets error state as a side effect. */

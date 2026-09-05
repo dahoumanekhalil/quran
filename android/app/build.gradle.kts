@@ -24,7 +24,10 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions { jvmTarget = "17" }
-    buildFeatures { compose = true }
+    buildFeatures {
+        compose = true
+        buildConfig = true
+    }
 
     buildTypes {
         release {
@@ -49,6 +52,8 @@ dependencies {
     implementation(project(":core:data"))
     implementation(project(":feature:reader"))
     implementation(project(":feature:navigation"))
+    implementation(project(":feature:search"))
+    implementation(project(":feature:settings"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime)

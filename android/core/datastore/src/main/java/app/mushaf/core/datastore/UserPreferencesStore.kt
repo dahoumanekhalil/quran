@@ -10,12 +10,16 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import app.mushaf.core.domain.model.AppSettings
+import app.mushaf.core.domain.model.Bookmark
 import app.mushaf.core.domain.model.MushafFont
 import app.mushaf.core.domain.model.ReadingPosition
 import app.mushaf.core.domain.model.ThemeMode
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -78,6 +82,48 @@ class UserPreferencesStore @Inject constructor(
         }
     }
 
+    // --- Bookmarks (ADR-0025: DataStore-JSON deviation from ADR-0007) ---
+    val bookmarks: Flow<List<Bookmark>> = ds.data.map { prefs ->
+        parseBookmarks(prefs[KEY_BOOKMARKS_JSON])
+    }
+
+    suspend fun bookmarksOnce(): List<Bookmark> = bookmarks.first()
+
+    /**
+     * Read-modify-write on the bookmarks list. Duplicates on `(pageNumber,
+     * ayahGlobalIndex)` are silently dropped so the reader ribbon stays a
+     * single toggle. Sort order: `createdAtEpochMillis` descending.
+     */
+    suspend fun updateBookmarks(transform: (List<Bookmark>) -> List<Bookmark>) {
+        val current = bookmarksOnce()
+        val next = transform(current)
+            .distinctBy { it.pageNumber to it.ayahGlobalIndex }
+            .sortedByDescending { it.createdAtEpochMillis }
+        ds.edit { prefs ->
+            prefs[KEY_BOOKMARKS_JSON] = JSON.encodeToString(BOOKMARK_LIST_SERIALIZER, next.map(BookmarkDto::from))
+        }
+    }
+
+    private fun parseBookmarks(raw: String?): List<Bookmark> {
+        if (raw.isNullOrEmpty()) return emptyList()
+        return runCatching {
+            JSON.decodeFromString(BOOKMARK_LIST_SERIALIZER, raw).map(BookmarkDto::toDomain)
+        }.getOrDefault(emptyList())
+    }
+
+    @Serializable
+    private data class BookmarkDto(
+        val page: Int,
+        val ayahGid: Int? = null,
+        val createdAt: Long,
+    ) {
+        fun toDomain() = Bookmark(pageNumber = page, ayahGlobalIndex = ayahGid, createdAtEpochMillis = createdAt)
+
+        companion object {
+            fun from(b: Bookmark) = BookmarkDto(page = b.pageNumber, ayahGid = b.ayahGlobalIndex, createdAt = b.createdAtEpochMillis)
+        }
+    }
+
     private companion object {
         val KEY_LAST_PAGE: Preferences.Key<Int> = intPreferencesKey("last_page")
         val KEY_LAST_AYAH: Preferences.Key<Int> = intPreferencesKey("last_ayah_global_index")
@@ -88,5 +134,10 @@ class UserPreferencesStore @Inject constructor(
         val KEY_FONT_SIZE: Preferences.Key<Float> = floatPreferencesKey("font_size_sp")
         val KEY_LINE_HEIGHT: Preferences.Key<Float> = floatPreferencesKey("line_height")
         val KEY_KEEP_SCREEN_ON: Preferences.Key<Boolean> = booleanPreferencesKey("keep_screen_on")
+
+        val KEY_BOOKMARKS_JSON: Preferences.Key<String> = stringPreferencesKey("bookmarks_json")
+
+        val JSON = Json { ignoreUnknownKeys = true; encodeDefaults = true }
+        val BOOKMARK_LIST_SERIALIZER = ListSerializer(BookmarkDto.serializer())
     }
 }

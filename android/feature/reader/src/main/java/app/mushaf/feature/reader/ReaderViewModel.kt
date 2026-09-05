@@ -5,10 +5,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.mushaf.core.domain.model.Page
 import app.mushaf.core.domain.model.ReadingPosition
+import app.mushaf.core.domain.repository.BookmarksRepository
 import app.mushaf.core.domain.repository.QuranRepository
 import app.mushaf.core.domain.repository.ReadingPositionRepository
 import app.mushaf.core.domain.repository.SettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -19,18 +21,21 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-@OptIn(FlowPreview::class)
+@OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class ReaderViewModel @Inject constructor(
     private val quranRepository: QuranRepository,
     private val readingPositionRepository: ReadingPositionRepository,
     private val settingsRepository: SettingsRepository,
+    private val bookmarksRepository: BookmarksRepository,
     private val savedState: SavedStateHandle,
 ) : ViewModel() {
 
@@ -58,6 +63,7 @@ class ReaderViewModel @Inject constructor(
             lastPersistedPage = initialPage
             _uiState.update { it.copy(currentPageNumber = initialPage, loading = false) }
             preload(initialPage)
+            updatePageContext(initialPage)
         }
 
         // Observe settings.
@@ -91,6 +97,15 @@ class ReaderViewModel @Inject constructor(
                 )
             }
             .launchIn(viewModelScope)
+
+        // Bookmark state for the *current* page — switches source whenever the
+        // page changes so the ribbon icon is always in sync.
+        _uiState
+            .map { it.currentPageNumber }
+            .distinctUntilChanged()
+            .flatMapLatest { page -> bookmarksRepository.observeIsBookmarked(page) }
+            .onEach { flag -> _uiState.update { it.copy(isCurrentPageBookmarked = flag) } }
+            .launchIn(viewModelScope)
     }
 
     fun onEvent(event: ReaderEvent) {
@@ -99,6 +114,15 @@ class ReaderViewModel @Inject constructor(
             is ReaderEvent.JumpToPage -> onPageChanged(event.pageNumber)
             ReaderEvent.ToggleControls -> _uiState.update { it.copy(isControlsVisible = !it.isControlsVisible) }
             ReaderEvent.HideControls -> _uiState.update { it.copy(isControlsVisible = false) }
+            ReaderEvent.ToggleBookmark -> toggleBookmark()
+        }
+    }
+
+    private fun toggleBookmark() {
+        val page = _uiState.value.currentPageNumber
+        val isBookmarked = _uiState.value.isCurrentPageBookmarked
+        viewModelScope.launch {
+            if (isBookmarked) bookmarksRepository.remove(page) else bookmarksRepository.add(page)
         }
     }
 
@@ -120,6 +144,21 @@ class ReaderViewModel @Inject constructor(
         savedState[KEY_CURRENT_PAGE] = newPage
         pageChanges.tryEmit(newPage)
         preload(newPage)
+        viewModelScope.launch { updatePageContext(newPage) }
+    }
+
+    /**
+     * Resolves the surah name (Arabic) and juz number for the given page so
+     * the top chrome can show reading context. Uses the repository's in-memory
+     * juz cache — no extra DAO round-trip after the first call.
+     */
+    private suspend fun updatePageContext(pageNumber: Int) {
+        val page = loadPage(pageNumber)
+        val surahName = page.ayahs.firstOrNull()?.surahNameAr
+        val allJuz = runCatching { quranRepository.getAllJuz() }.getOrDefault(emptyList())
+        val gid = page.firstAyahGlobalIndex
+        val juzNumber = allJuz.firstOrNull { gid in it.firstAyahGlobalIndex..it.lastAyahGlobalIndex }?.number
+        _uiState.update { it.copy(currentSurahNameAr = surahName, currentJuzNumber = juzNumber) }
     }
 
     private fun preload(page: Int) {

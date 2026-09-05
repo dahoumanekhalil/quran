@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import app.mushaf.core.domain.model.AppSettings
 import app.mushaf.core.domain.model.Page
 import app.mushaf.core.domain.model.ReadingPosition
+import app.mushaf.core.domain.repository.BookmarksRepository
 import app.mushaf.core.domain.repository.QuranRepository
 import app.mushaf.core.domain.repository.ReadingPositionRepository
 import app.mushaf.core.domain.repository.SettingsRepository
@@ -32,8 +33,10 @@ class ReaderViewModelTest {
     private lateinit var quranRepo: QuranRepository
     private lateinit var readingRepo: ReadingPositionRepository
     private lateinit var settingsRepo: SettingsRepository
+    private lateinit var bookmarksRepo: BookmarksRepository
     private val positionFlow = MutableStateFlow(ReadingPosition(pageNumber = 42))
     private val settingsFlow = MutableStateFlow(AppSettings())
+    private val isBookmarkedFlow = MutableStateFlow(false)
 
     @BeforeEach
     fun setUp() {
@@ -55,6 +58,9 @@ class ReaderViewModelTest {
         settingsRepo = mockk(relaxed = true) {
             every { observe() } returns settingsFlow
         }
+        bookmarksRepo = mockk(relaxed = true) {
+            every { observeIsBookmarked(any()) } returns isBookmarkedFlow
+        }
     }
 
     @AfterEach
@@ -68,7 +74,7 @@ class ReaderViewModelTest {
         } else {
             SavedStateHandle()
         }
-        return ReaderViewModel(quranRepo, readingRepo, settingsRepo, saved)
+        return ReaderViewModel(quranRepo, readingRepo, settingsRepo, bookmarksRepo, saved)
     }
 
     @Test

@@ -7,8 +7,8 @@
 
 ## Project Status
 
-**Current Phase:** Phase 7 — Home Experience (queued next)
-**Current Task:** TASK-100 (Phase 7 kickoff)
+**Current Phase:** Phase 11 — Accessibility (queued next)
+**Current Task:** TASK-160 (Phase 11 kickoff)
 **Completed Tasks:** TASK-001..TASK-024, TASK-025, TASK-026 (structural — pending device verification via CI + phone), TASK-030..TASK-037 (Phase 3 core, TASK-034/035 now shipped), TASK-050..TASK-053, TASK-055 (Phase 4 essentials), TASK-070..TASK-076 (Phase 5 — TASK-074/075 now shipped), TASK-085..TASK-088 (Phase 6)
 **Partial / Deferred Tasks:**
 - TASK-027, TASK-028, TASK-029 (device matrix, long-session, rendering-lock ADR) — need CI build + user's phone; browser preview substitutes visual check for ~80%
@@ -26,10 +26,10 @@
 - [x] Phase 4 — Core Data & Domain (Quran + reading position + settings; bookmarks deferred to Phase 9)
 - [x] Phase 5 — Reader Engine (structural; gesture/immersive polish deferred)
 - [x] Phase 6 — Quran Navigation
-- [ ] Phase 7 — Home Experience
-- [ ] Phase 8 — Search
-- [ ] Phase 9 — Bookmarks & Reading State
-- [ ] Phase 10 — Settings
+- [x] Phase 7 — Home Experience (TASK-101 already in place; TASK-100 replaced by in-reader context strip per user + charter)
+- [x] Phase 8 — Search (skeleton FTS5 + normalizer + search UI + Reader chrome entrypoint)
+- [x] Phase 9 — Bookmarks & Reading State (page-scoped bookmarks + ribbon toggle + Saved tab; TASK-133 device tests deferred to Phase 14)
+- [x] Phase 10 — Settings (theme + reading size + font + keep-screen-on + About)
 - [ ] Phase 11 — Accessibility
 - [ ] Phase 12 — Performance Engineering
 - [ ] Phase 13 — Security & Privacy
@@ -1980,7 +1980,7 @@ Goal: a home surface that gently returns the user to the Quran.
 **Priority:** Critical
 **Phase:** Phase 7
 **Depends on:** TASK-085, TASK-086, TASK-088
-**Status:** Not Started
+**Status:** Skipped (charter already satisfied — Reader is the start destination; a separate Home surface would add a step users don't want. Replaced by an in-reader reading-context strip: Surah name (Arabic) + Juz number + Page N/604 in the top chrome. Existing burger menu still opens Surah/Juz/Page-jump directly.)
 
 **Objective:**
 A calm home surface with a large, primary "Continue reading" action, and quiet secondary access to Surahs, Juz, Search, Bookmarks.
@@ -2011,7 +2011,7 @@ TASK-101.
 **Priority:** Critical
 **Phase:** Phase 7
 **Depends on:** TASK-073, TASK-100
-**Status:** Not Started
+**Status:** Completed (already satisfied since Phase 3: `MushafNavHost` sets `startDestination = READER_ROUTE`. Fresh install lands on page 1; returning users land on their persisted page via `ReadingPositionRepository`.)
 
 **Objective:**
 Launching the app opens the Reader on the last-read page directly. The home screen is one back-press away, not the default surface.
@@ -2047,7 +2047,7 @@ Goal: offline Arabic search that is accurate and fast.
 **Priority:** Critical
 **Phase:** Phase 8
 **Depends on:** TASK-023
-**Status:** Not Started
+**Status:** Completed (`SearchNormalizer` in `:core:domain/search/` mirrors the pipeline's `normalize_for_search()` byte-for-byte — strips harakat/Quranic marks/tatweel/all-alef-forms, substitutes ى→ي and ة→ه, collapses whitespace. Covered by `SearchNormalizerTest` with parameterized cases + Al-Fatiha skeleton smoke test.)
 
 **Objective:**
 Client-side query normalization must mirror the index-time normalization exactly.
@@ -2078,7 +2078,7 @@ TASK-116.
 **Priority:** Critical
 **Phase:** Phase 8
 **Depends on:** TASK-115, TASK-051
-**Status:** Not Started
+**Status:** Completed (`SearchHit` domain type + `QuranRepository.search(query, limit)` route through `SearchNormalizer`. `QuranDao.search()` runs FTS5 MATCH with `bm25` ranking, tie-broken by surah/ayah. Snippet returns untouched `text_uthmani`. `matchPositions` deferred (POST-MVP inline highlight). `QuranRepositoryImplTest` covers blank-query short-circuit, normalization delegation, and limit clamping.)
 
 **Objective:**
 Execute FTS queries against the Quran DB and rank results.
@@ -2109,7 +2109,7 @@ TASK-117.
 **Priority:** High
 **Phase:** Phase 8
 **Depends on:** TASK-116, TASK-088
-**Status:** Not Started
+**Status:** Completed (New `:feature:search` module. `SearchViewModel` debounces `query` StateFlow at 300 ms and races-safe against stale results. Empty query → quiet hint; searched-with-no-matches → quiet "No matches" state. Tapping a result writes the target page + ayah global index to `ReadingPositionRepository`; the Reader observes and syncs. Reachable via a search icon in the Reader's top chrome. Wired into `MushafNavHost` as a third destination.)
 
 **Objective:**
 A calm search UI with a single input, quiet empty state, and tappable results.
@@ -2145,7 +2145,7 @@ Goal: reliable bookmarks and reading position, with clear scope semantics.
 **Priority:** Critical
 **Phase:** Phase 9
 **Depends on:** TASK-053
-**Status:** Not Started
+**Status:** Completed (`docs/adr/0025-bookmark-scope.md` — page-scoped for MVP with nullable `ayahGlobalIndex` reserved for POST-MVP. Storage deviates from ADR-0007: uses DataStore + kotlinx.serialization JSON instead of Room. Deviation documented + migration path defined.)
 
 **Objective:**
 Explicitly decide whether MVP bookmarks are page-scoped, ayah-scoped, or both.
@@ -2176,7 +2176,7 @@ TASK-131.
 **Priority:** High
 **Phase:** Phase 9
 **Depends on:** TASK-130
-**Status:** Not Started
+**Status:** Completed (`Bookmark` domain model + `BookmarksRepository` interface in `:core:domain`. `BookmarksRepositoryImpl` in `:core:data` delegates to `UserPreferencesStore.updateBookmarks{}` which handles idempotent adds via `distinctBy((pageNumber, ayahGlobalIndex))` + sorts by `createdAtEpochMillis` DESC. Range validation on `add`; `remove` matches on `pageNumber` only for MVP.)
 
 **Objective:**
 Implement add / remove / list / jump-to bookmark operations.
@@ -2207,7 +2207,7 @@ TASK-132.
 **Priority:** High
 **Phase:** Phase 9
 **Depends on:** TASK-131, TASK-072, TASK-088
-**Status:** Not Started
+**Status:** Completed (Reader top chrome: filled/outlined ribbon icon reflecting current-page state via `observeIsBookmarked(currentPage)` + `flatMapLatest` on page changes. Bookmarks list added as a fourth `Saved` tab in the existing `NavigationScreen` — avoids a new feature module and keeps all navigation in one place. Row shows page number + saved date; tap jumps via `ReadingPositionRepository`; delete-icon removes. Swipe-to-delete + undo snackbar deferred to Phase 15.)
 
 **Objective:**
 A discreet bookmark toggle on the reader (visible only when controls are shown) and a clean bookmarks list.
@@ -2238,7 +2238,7 @@ Bookmark UI.
 **Priority:** Critical
 **Phase:** Phase 9
 **Depends on:** TASK-076, TASK-055
-**Status:** Not Started
+**Status:** Partial (JVM-testable paths covered — `ReaderViewModelTest` verifies rotation via SavedStateHandle + cold-start restore via `ReadingPositionRepository`. `UserPreferencesStore` returns page 1 on empty DataStore. Force-stop, battery-kill, split-screen, and future dataset-mismatch fallback documented as manual QA in `docs/reading-position-edge-cases.md` — device-verified during Phase 14 QA pass.)
 
 **Objective:**
 Guarantee reading-position correctness in all lifecycle and data-migration scenarios.
@@ -2284,7 +2284,7 @@ Goal: a small, deliberate set of settings that each justify their existence.
 **Priority:** High
 **Phase:** Phase 10
 **Depends on:** TASK-053
-**Status:** Not Started
+**Status:** Completed (New `:feature:settings` module. `SettingsScreen` groups Appearance + Reading + About. Theme selector (Light/Dark/Follow system) persists via `SettingsRepository.update{}`. `MushafRootViewModel` in `:app` exposes `themeMode` StateFlow — `MainActivity` resolves it to a boolean (Follow-system reads `isSystemInDarkTheme()`) and passes to `MushafTheme`. Theme change is instant across the app.)
 
 **Objective:**
 A single settings screen with theme control (Light / Dark / Follow System).
@@ -2315,7 +2315,7 @@ TASK-146.
 **Priority:** High
 **Phase:** Phase 10
 **Depends on:** TASK-145, TASK-071
-**Status:** Not Started
+**Status:** Completed (`ReadingSize` enum (SMALL=26sp, MEDIUM=30sp, LARGE=34sp) — three discrete steps chosen to preserve the 15-line Mushaf layout. Mushaf font selector (KFGQPC / Amiri Quran) — both are bundled. Keep-screen-on toggle — already wired to Reader via TASK-075 `DisposableEffect(view, keepScreenOn)`. Settings apply live because Reader already observes `SettingsRepository.observe()`.)
 
 **Objective:**
 Minimal reading-related preferences.
@@ -2346,7 +2346,7 @@ Phase 15.
 **Priority:** Medium
 **Phase:** Phase 10
 **Depends on:** TASK-145
-**Status:** Not Started
+**Status:** Completed (`AboutRoute` in `:feature:settings`. Static content with sections: app version (`BuildConfig.VERSION_NAME` / `VERSION_CODE`), Quran content (dataset version + SHA-256 from `QuranAsset`, source lineage), fonts (KFGQPC EULA + Amiri OFL), privacy statement (offline, no ads/analytics/tracking/telemetry/accounts), and source URL. Reachable from SettingsScreen → "About Mushaf".)
 
 **Objective:**
 Show app version, dataset version and hash, credits, font license, source attributions, and privacy statement.

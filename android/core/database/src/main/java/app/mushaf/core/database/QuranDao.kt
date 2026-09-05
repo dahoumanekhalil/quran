@@ -2,11 +2,13 @@ package app.mushaf.core.database
 
 import android.database.sqlite.SQLiteDatabase
 import app.mushaf.core.common.IoDispatcher
+import app.mushaf.core.domain.model.Ayah
 import app.mushaf.core.domain.model.Juz
 import app.mushaf.core.domain.model.Page
 import app.mushaf.core.domain.model.PageAyah
 import app.mushaf.core.domain.model.RevelationPlace
 import app.mushaf.core.domain.model.Surah
+import app.mushaf.core.domain.search.SearchHit
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -180,6 +182,57 @@ class QuranDao @Inject constructor(
             check(c.moveToNext()) { "Page for juz $juzNumber start not found" }
             c.getInt(0)
         }
+    }
+
+    /**
+     * FTS5 skeleton-match search. `normalizedQuery` must already be run through
+     * `SearchNormalizer.normalize()` — the client-side normalizer mirrors the
+     * pipeline-side normalization that populated `ayahs.search_text`.
+     *
+     * Ranking: bm25 ascending (smaller = better), tie-broken by surah then
+     * ayah for a stable, mushaf-ordered listing.
+     */
+    suspend fun search(normalizedQuery: String, limit: Int): List<SearchHit> = withContext(io) {
+        val out = ArrayList<SearchHit>(limit.coerceAtMost(200))
+        sqlite.rawQuery(
+            """
+            SELECT a.global_index, a.surah, a.ayah, a.text_uthmani, a.page,
+                   a.juz, a.hizb, a.rub, a.quarter_in_hizb, a.manzil, a.ruku, a.is_sajda,
+                   s.name_ar, bm25(ayahs_fts) AS rank
+            FROM ayahs_fts
+            JOIN ayahs a ON a.global_index = ayahs_fts.rowid
+            JOIN surahs s ON s.number = a.surah
+            WHERE ayahs_fts MATCH ?
+            ORDER BY rank, a.surah, a.ayah
+            LIMIT ?
+            """.trimIndent(),
+            arrayOf(normalizedQuery, limit.toString()),
+        ).use { c ->
+            while (c.moveToNext()) {
+                val ayah = Ayah(
+                    globalIndex = c.getInt(0),
+                    surah = c.getInt(1),
+                    ayah = c.getInt(2),
+                    textUthmani = c.getString(3),
+                    page = c.getInt(4),
+                    juz = c.getInt(5),
+                    hizb = c.getInt(6),
+                    rub = c.getInt(7),
+                    quarterInHizb = c.getInt(8),
+                    manzil = c.getInt(9),
+                    ruku = c.getInt(10),
+                    isSajda = c.getInt(11) == 1,
+                )
+                out += SearchHit(
+                    ayah = ayah,
+                    surahNameAr = c.getString(12),
+                    snippet = ayah.textUthmani,
+                    matchPositions = emptyList(),
+                    rank = c.getDouble(13),
+                )
+            }
+        }
+        out
     }
 
     private data class PageMeta(

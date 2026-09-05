@@ -9,6 +9,7 @@ import com.google.common.truth.Truth.assertThat
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.slot
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
@@ -110,5 +111,39 @@ class QuranRepositoryImplTest {
 
         assertThrows<IllegalArgumentException> { runBlocking { repo.getSurah(0) } }
         assertThrows<IllegalArgumentException> { runBlocking { repo.getSurah(115) } }
+    }
+
+    @Test
+    fun searchReturnsEmptyForBlankQuery() = runTest {
+        val repo = QuranRepositoryImpl(dao)
+
+        assertThat(repo.search("")).isEmpty()
+        assertThat(repo.search("   \n ")).isEmpty()
+    }
+
+    @Test
+    fun searchNormalizesBeforeDelegating() = runTest {
+        // Raw query contains harakat and alef variants; the DAO must receive
+        // the skeleton-normalized version so it matches ayahs.search_text.
+        val slot = slot<String>()
+        coEvery { dao.search(capture(slot), any()) } returns emptyList()
+        val repo = QuranRepositoryImpl(dao)
+
+        repo.search("ٱلرَّحْمَـٰنِ")
+
+        assertThat(slot.captured).isEqualTo("لرحمن")
+    }
+
+    @Test
+    fun searchClampsLimit() = runTest {
+        val slot = slot<Int>()
+        coEvery { dao.search(any(), capture(slot)) } returns emptyList()
+        val repo = QuranRepositoryImpl(dao)
+
+        repo.search("بسم", limit = 9999)
+        assertThat(slot.captured).isEqualTo(200)
+
+        repo.search("بسم", limit = 0)
+        assertThat(slot.captured).isEqualTo(1)
     }
 }
