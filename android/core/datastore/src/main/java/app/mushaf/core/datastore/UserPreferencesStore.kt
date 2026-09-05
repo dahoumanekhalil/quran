@@ -41,8 +41,9 @@ class UserPreferencesStore @Inject constructor(
     suspend fun saveReadingPosition(position: ReadingPosition) {
         ds.edit { prefs ->
             prefs[KEY_LAST_PAGE] = position.pageNumber
-            if (position.ayahGlobalIndex != null) {
-                prefs[KEY_LAST_AYAH] = position.ayahGlobalIndex
+            val ayah = position.ayahGlobalIndex
+            if (ayah != null) {
+                prefs[KEY_LAST_AYAH] = ayah
             } else {
                 prefs.remove(KEY_LAST_AYAH)
             }
