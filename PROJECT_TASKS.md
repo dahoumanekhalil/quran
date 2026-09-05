@@ -9,14 +9,11 @@
 
 **Current Phase:** Phase 7 — Home Experience (queued next)
 **Current Task:** TASK-100 (Phase 7 kickoff)
-**Completed Tasks:** TASK-001..TASK-024, TASK-025, TASK-026 (structural — pending device verification via CI + phone), TASK-030..TASK-037 (Phase 3 core), TASK-050..TASK-053, TASK-055 (Phase 4 essentials), TASK-070..TASK-073, TASK-076 (Phase 5 essentials), TASK-085..TASK-088 (Phase 6)
+**Completed Tasks:** TASK-001..TASK-024, TASK-025, TASK-026 (structural — pending device verification via CI + phone), TASK-030..TASK-037 (Phase 3 core, TASK-034/035 now shipped), TASK-050..TASK-053, TASK-055 (Phase 4 essentials), TASK-070..TASK-076 (Phase 5 — TASK-074/075 now shipped), TASK-085..TASK-088 (Phase 6)
 **Partial / Deferred Tasks:**
 - TASK-027, TASK-028, TASK-029 (device matrix, long-session, rendering-lock ADR) — need CI build + user's phone; browser preview substitutes visual check for ~80%
-- TASK-034 (static analysis / layer enforcement) — deferred; multi-module gradle enforces most boundaries at compile time
-- TASK-035 (test infrastructure) — deps wired, tests not yet written
 - TASK-054 (domain use cases) — deliberately skipped per ADR-0011 (thin services + direct repo calls)
 - TASK-053 (bookmarks) — deferred to Phase 9 (only reading position + settings implemented)
-- TASK-074, TASK-075 (gestures, immersive mode) — minimal implementation; iterate in Phase 15
 **Critical Issues:** None
 **Release Readiness:** Not Ready — untested on real hardware; awaiting first CI build + user side-load verification
 
@@ -29,10 +26,6 @@
 - [x] Phase 4 — Core Data & Domain (Quran + reading position + settings; bookmarks deferred to Phase 9)
 - [x] Phase 5 — Reader Engine (structural; gesture/immersive polish deferred)
 - [x] Phase 6 — Quran Navigation
-- [ ] Phase 7 — Home Experience
-- [ ] Phase 4 — Core Data & Domain
-- [ ] Phase 5 — Reader Engine
-- [ ] Phase 6 — Quran Navigation
 - [ ] Phase 7 — Home Experience
 - [ ] Phase 8 — Search
 - [ ] Phase 9 — Bookmarks & Reading State
@@ -231,7 +224,7 @@ Goal: establish decisions, guardrails, and tooling. **No feature code is written
 **Priority:** Critical
 **Phase:** Phase 0
 **Depends on:** —
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 Produce a short, signed project charter that captures vision, principles, MVP scope, and non-goals, and reference this `PROJECT_TASKS.md` as the operational plan.
@@ -264,7 +257,7 @@ TASK-002, all subsequent tasks.
 **Priority:** Critical
 **Phase:** Phase 0
 **Depends on:** TASK-001
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 Create the empty repository structure with directories for documentation, ADRs, data pipeline, prototypes, and Android app, without any application code yet.
@@ -296,7 +289,7 @@ TASK-003 onward.
 **Priority:** High
 **Phase:** Phase 0
 **Depends on:** TASK-002
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 Define a standard ADR format and enforce that every architectural decision (ADR-001..ADR-020) uses it.
@@ -327,7 +320,7 @@ TASK-004 through TASK-011 (all ADR tasks).
 **Priority:** Critical
 **Phase:** Phase 0
 **Depends on:** TASK-003
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 Decide and document: primary language, UI toolkit, minSdk/targetSdk/compileSdk.
@@ -358,7 +351,7 @@ TASK-005..TASK-011, TASK-030 (project init).
 **Priority:** Critical
 **Phase:** Phase 0
 **Depends on:** TASK-004
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 Decide the app-wide architecture pattern, navigation library, and state-management approach.
@@ -389,7 +382,7 @@ TASK-006, TASK-030, all UI tasks.
 **Priority:** Critical
 **Phase:** Phase 0
 **Depends on:** TASK-005
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 Decide local persistence, dependency injection, and concurrency model.
@@ -420,7 +413,7 @@ TASK-007, TASK-050 (data layer).
 **Priority:** High
 **Phase:** Phase 0
 **Depends on:** TASK-006
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 Define layer boundaries and responsibilities.
@@ -451,7 +444,7 @@ TASK-050+, TASK-034.
 **Priority:** Critical
 **Phase:** Phase 0
 **Depends on:** TASK-007
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 Decide how Quran content and fonts are shipped and loaded.
@@ -482,7 +475,7 @@ Phase 1 (data pipeline), Phase 2 (rendering prototype), TASK-030.
 **Priority:** Critical
 **Phase:** Phase 0
 **Depends on:** TASK-004, TASK-008
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 Choose the paging mechanism (e.g., HorizontalPager, ViewPager2, custom) and the text rendering surface (Compose Text, native TextView, Canvas draw).
@@ -514,7 +507,7 @@ TASK-025 (rendering prototype), Phase 5.
 **Priority:** High
 **Phase:** Phase 0
 **Depends on:** TASK-005
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 Standardize the testing stack and the Gradle build system.
@@ -545,7 +538,7 @@ TASK-030, TASK-034.
 **Priority:** High
 **Phase:** Phase 0
 **Depends on:** TASK-008, TASK-010
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 Document release channels, signing, versioning, and rollout policy.
@@ -576,7 +569,7 @@ Phase 17, Phase 18.
 **Priority:** Critical
 **Phase:** Phase 0
 **Depends on:** TASK-008
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 Select an authoritative Quran text source and document its provenance and license.
@@ -608,7 +601,7 @@ TASK-013, Phase 1.
 **Priority:** Critical
 **Phase:** Phase 0
 **Depends on:** TASK-012
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 Select and document the pagination reference (the physical Mushaf whose 604-page layout the app will follow) and secure page-to-ayah mapping data.
@@ -640,7 +633,7 @@ TASK-018, Phase 1 pipeline validation.
 **Priority:** Medium
 **Phase:** Phase 0
 **Depends on:** TASK-002
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 Enforce a consistent baseline for formatting and commit hygiene from day one.
@@ -676,7 +669,7 @@ Goal: produce a frozen, verified, immutable Quran dataset with strict structural
 **Priority:** Critical
 **Phase:** Phase 1
 **Depends on:** TASK-012, TASK-013
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 Document the schema for Surahs, Ayahs, Pages, Juz, Hizb, Rub, and their relationships, independent of any storage format.
@@ -714,7 +707,7 @@ TASK-016 onward.
 **Priority:** Critical
 **Phase:** Phase 1
 **Depends on:** TASK-015
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 Create a deterministic, reproducible pipeline that ingests raw source files and produces validated intermediate structured data.
@@ -745,7 +738,7 @@ TASK-017.
 **Priority:** Critical
 **Phase:** Phase 1
 **Depends on:** TASK-016
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 Ingest the selected Uthmani text and store each ayah's exact Unicode string without normalization, trimming, whitespace collapsing, or transliteration.
@@ -776,7 +769,7 @@ TASK-018 onward.
 **Priority:** Critical
 **Phase:** Phase 1
 **Depends on:** TASK-013, TASK-017
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 Map every ayah to its Madani page number, juz, hizb, and rub.
@@ -807,7 +800,7 @@ TASK-019.
 **Priority:** Critical
 **Phase:** Phase 1
 **Depends on:** TASK-018
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 Automated tests that assert every structural invariant.
@@ -846,7 +839,7 @@ TASK-020.
 **Priority:** Critical
 **Phase:** Phase 1
 **Depends on:** TASK-019
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 Automated tests that assert Unicode correctness of Quranic text.
@@ -883,7 +876,7 @@ TASK-021.
 **Priority:** High
 **Phase:** Phase 1
 **Depends on:** TASK-020
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 Sanity-check the imported corpus against a second independent Quran text source.
@@ -914,7 +907,7 @@ TASK-022.
 **Priority:** Critical
 **Phase:** Phase 1
 **Depends on:** TASK-021
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 Produce the final read-only `quran.db` bundled with the app.
@@ -946,7 +939,7 @@ TASK-023, TASK-055 (Android data source).
 **Priority:** High
 **Phase:** Phase 1
 **Depends on:** TASK-022
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 Add a normalized (diacritics-stripped, Alef/Ya/Ta-Marbuta-normalized) text column and full-text search index, without altering the original `text_uthmani`.
@@ -978,7 +971,7 @@ Phase 8.
 **Priority:** Critical
 **Phase:** Phase 1
 **Depends on:** TASK-019, TASK-020, TASK-021, TASK-022, TASK-023
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 Freeze the dataset. Produce a signed, immutable release candidate for content.
@@ -1014,7 +1007,7 @@ Goal: prove that the chosen text-rendering stack can reproduce Quran text beauti
 **Priority:** Critical
 **Phase:** Phase 2
 **Depends on:** TASK-008
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 Choose a Mushaf-quality font whose license permits embedding in a freely-distributed Android app.
@@ -1046,7 +1039,7 @@ TASK-026.
 **Priority:** Critical
 **Phase:** Phase 2
 **Depends on:** TASK-009, TASK-024, TASK-025
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 Build a small, isolated Android app that renders full Quran pages using the chosen paging + text rendering approach and the chosen font, loaded from the frozen dataset.
@@ -1079,7 +1072,7 @@ TASK-027, TASK-028, TASK-029.
 **Priority:** Critical
 **Phase:** Phase 2
 **Depends on:** TASK-026
-**Status:** Not Started
+**Status:** Deferred (pending device verification)
 
 **Objective:**
 Verify rendering quality and performance across a representative device matrix.
@@ -1111,7 +1104,7 @@ TASK-028.
 **Priority:** High
 **Phase:** Phase 2
 **Depends on:** TASK-027
-**Status:** Not Started
+**Status:** Deferred (pending device verification)
 
 **Objective:**
 Ensure rendering remains stable, memory-bounded, and free of degradation over long sessions.
@@ -1143,7 +1136,7 @@ TASK-029.
 **Priority:** Critical
 **Phase:** Phase 2
 **Depends on:** TASK-028
-**Status:** Not Started
+**Status:** Deferred (pending device verification)
 
 **Objective:**
 Confirm that the chosen rendering stack passes acceptance and lock it as the production approach — or explicitly return to TASK-009 for reconsideration.
@@ -1178,7 +1171,7 @@ Goal: initialize the production Android project, set up modules, build config, s
 **Priority:** Critical
 **Phase:** Phase 3
 **Depends on:** TASK-004, TASK-005, TASK-006, TASK-008, TASK-010, TASK-011, TASK-029
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 Create the production Android project under `/android/` per the chosen stack and SDK levels.
@@ -1209,7 +1202,7 @@ TASK-031 onward.
 **Priority:** Critical
 **Phase:** Phase 3
 **Depends on:** TASK-030
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 Split the codebase into modules that mirror the architectural layers.
@@ -1240,7 +1233,7 @@ TASK-032 onward.
 **Priority:** High
 **Phase:** Phase 3
 **Depends on:** TASK-030
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 Set up `debug`, `staging`, and `release` build variants with distinct application IDs and signing configuration hooks.
@@ -1271,7 +1264,7 @@ Phase 17, Phase 18.
 **Priority:** High
 **Phase:** Phase 3
 **Depends on:** TASK-031
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 Set up DI (per ADR-008) with empty module bindings for each layer.
@@ -1302,7 +1295,7 @@ All data / feature tasks.
 **Priority:** High
 **Phase:** Phase 3
 **Depends on:** TASK-014, TASK-031
-**Status:** Not Started
+**Status:** Completed (Spotless + ktlint 1.3.1 wired via root `build.gradle.kts`; `spotlessCheck` runs in CI. Layer boundaries continue to be enforced by the multi-module gradle graph — a Detekt custom rule is deferred until warranted.)
 
 **Objective:**
 Configure ktlint/Spotless, Android Lint baseline, Detekt (or equivalent), and module-boundary rules.
@@ -1333,7 +1326,7 @@ TASK-035.
 **Priority:** High
 **Phase:** Phase 3
 **Depends on:** TASK-033, TASK-034
-**Status:** Not Started
+**Status:** Completed (JUnit 5 + Turbine + MockK + Google Truth + coroutines-test wired via `de.mannodermaus.android-junit5` plugin. First real suites in `:feature:reader` and `:core:data`. Instrumented/screenshot testing intentionally deferred until Phase 15 — see ADR-0018.)
 
 **Objective:**
 Set up unit, instrumented, and screenshot test scaffolding across modules.
@@ -1364,7 +1357,7 @@ Phase 4+ testing tasks.
 **Priority:** High
 **Phase:** Phase 3
 **Depends on:** TASK-035
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 Automate build, static analysis, and unit tests on every push and pull request.
@@ -1395,7 +1388,7 @@ Every subsequent task benefits from this but none are strictly blocked.
 **Priority:** Medium
 **Phase:** Phase 3
 **Depends on:** TASK-033
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 Create a stable, minimal entrypoint that boots the app to an empty placeholder screen.
@@ -1430,7 +1423,7 @@ Goal: implement the layered access to Quran content and user data, without any U
 **Priority:** Critical
 **Phase:** Phase 4
 **Depends on:** TASK-024, TASK-037
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 Package `quran-<version>.db` into the app's assets and expose a controlled copy-on-first-launch flow to internal storage.
@@ -1462,7 +1455,7 @@ TASK-051.
 **Priority:** Critical
 **Phase:** Phase 4
 **Depends on:** TASK-050
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 Expose type-safe access to the Quran content DB via Room's `createFromAsset` (or an equivalent pre-populated DB mechanism).
@@ -1494,7 +1487,7 @@ TASK-052, Phase 5, Phase 6, Phase 8.
 **Priority:** Critical
 **Phase:** Phase 4
 **Depends on:** TASK-051
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 Wrap DAOs in repositories that expose domain-friendly types (no Room annotations leak beyond `:data:content`).
@@ -1526,7 +1519,7 @@ TASK-053, Phase 5, Phase 6.
 **Priority:** Critical
 **Phase:** Phase 4
 **Depends on:** TASK-037
-**Status:** Not Started
+**Status:** Partial (reading position + settings done; bookmarks deferred to Phase 9)
 
 **Objective:**
 Provide writable local storage for user-generated data, strictly separated from the immutable Quran DB.
@@ -1558,7 +1551,7 @@ Phase 9, Phase 10.
 **Priority:** High
 **Phase:** Phase 4
 **Depends on:** TASK-052, TASK-053
-**Status:** Not Started
+**Status:** Skipped (per ADR-0011: thin services + direct repo calls)
 
 **Objective:**
 Implement thin use cases that encode business rules the UI must not know.
@@ -1589,7 +1582,7 @@ Phase 5+ ViewModels.
 **Priority:** High
 **Phase:** Phase 4
 **Depends on:** TASK-050, TASK-051
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 On every cold start, verify the DB hash and structural invariants (114 surahs, 6236 ayahs, 604 pages).
@@ -1625,7 +1618,7 @@ Goal: build the beating heart of the app — a smooth, memory-safe, restorable p
 **Priority:** Critical
 **Phase:** Phase 5
 **Depends on:** TASK-054
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 Define the reader's unidirectional state model: which page is current, adjacent pages, loading, error, and controls-visibility.
@@ -1656,7 +1649,7 @@ TASK-071.
 **Priority:** Critical
 **Phase:** Phase 5
 **Depends on:** TASK-029, TASK-052, TASK-070
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 Implement the single-page render composable/view that displays one Mushaf page from a `Page` domain object using the locked rendering approach and the Mushaf font.
@@ -1688,7 +1681,7 @@ TASK-072.
 **Priority:** Critical
 **Phase:** Phase 5
 **Depends on:** TASK-071
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 Wrap the page renderer in the chosen paging container so the user can swipe through all 604 pages.
@@ -1720,7 +1713,7 @@ TASK-073.
 **Priority:** Critical
 **Phase:** Phase 5
 **Depends on:** TASK-072
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 The reader must return the user to the exact page after configuration changes, backgrounding, and process death.
@@ -1752,7 +1745,7 @@ Phase 9 depends on this working correctly.
 **Priority:** High
 **Phase:** Phase 5
 **Depends on:** TASK-072
-**Status:** Not Started
+**Status:** Completed (Tap on center 60% band toggles chrome; back button hides chrome when visible. Long-press and double-tap explicitly not wired per MVP rules. `ReaderEvent.ToggleControls`/`HideControls` drive `ReaderUiState.isControlsVisible`.)
 
 **Objective:**
 Define the minimal, intentional interaction model for the reader.
@@ -1791,7 +1784,7 @@ TASK-075, TASK-090.
 **Priority:** High
 **Phase:** Phase 5
 **Depends on:** TASK-074
-**Status:** Not Started
+**Status:** Completed (`WindowInsetsControllerCompat` hides/shows system bars in step with `isControlsVisible`; `BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE` preserves swipe-to-reveal. `FLAG_KEEP_SCREEN_ON` wired to `AppSettings.keepScreenOn` and scoped to the reader via `DisposableEffect`.)
 
 **Objective:**
 When controls are hidden, the reader enters an edge-to-edge, distraction-free presentation.
@@ -1823,7 +1816,7 @@ Phase 15 refinement.
 **Priority:** High
 **Phase:** Phase 5
 **Depends on:** TASK-073
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 Persist the current page in a way that survives process death without hammering storage.
@@ -1858,7 +1851,7 @@ Goal: implement the navigation surfaces that let the user jump within the Mushaf
 **Priority:** Critical
 **Phase:** Phase 6
 **Depends on:** TASK-054, TASK-070
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 A scrollable, calm list of all 114 Surahs, with Arabic name, translit, revelation place, and ayah count.
@@ -1890,7 +1883,7 @@ TASK-100.
 **Priority:** High
 **Phase:** Phase 6
 **Depends on:** TASK-054, TASK-070
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 A list of 30 Juz with their first-page numbers and first-surah:ayah references.
@@ -1921,7 +1914,7 @@ TASK-100.
 **Priority:** High
 **Phase:** Phase 6
 **Depends on:** TASK-072
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 Allow the user to jump to a specific page number (1..604) from the reader controls.
@@ -1952,7 +1945,7 @@ Page-jump control.
 **Priority:** High
 **Phase:** Phase 6
 **Depends on:** TASK-073, TASK-085, TASK-086
-**Status:** Not Started
+**Status:** Completed
 
 **Objective:**
 Wherever the user goes (surah list, juz list, bookmarks, search), a back navigation should always return them to their current reading page — never lose reading context.

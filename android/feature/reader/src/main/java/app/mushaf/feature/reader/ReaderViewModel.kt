@@ -97,6 +97,8 @@ class ReaderViewModel @Inject constructor(
         when (event) {
             is ReaderEvent.PageChanged -> onPageChanged(event.newPageNumber)
             is ReaderEvent.JumpToPage -> onPageChanged(event.pageNumber)
+            ReaderEvent.ToggleControls -> _uiState.update { it.copy(isControlsVisible = !it.isControlsVisible) }
+            ReaderEvent.HideControls -> _uiState.update { it.copy(isControlsVisible = false) }
         }
     }
 

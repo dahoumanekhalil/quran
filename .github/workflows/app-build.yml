@@ -44,6 +44,11 @@ jobs:
         with:
           gradle-version: '8.10.2'
 
+      - name: Spotless check (ktlint)
+        working-directory: android
+        run: gradle --no-daemon --stacktrace spotlessCheck
+        continue-on-error: true      # first run may surface formatting drift; do not gate the APK yet
+
       - name: Assemble debug APK (all modules)
         working-directory: android
         run: gradle --no-daemon --stacktrace :app:assembleDebug
@@ -51,7 +56,7 @@ jobs:
       - name: Run unit tests
         working-directory: android
         run: gradle --no-daemon --stacktrace test
-        continue-on-error: true      # tests are minimal so far; do not gate the APK
+        continue-on-error: true      # first real test run; do not gate the APK
 
       - name: Rename APK
         working-directory: android

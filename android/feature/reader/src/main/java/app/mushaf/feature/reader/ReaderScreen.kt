@@ -1,8 +1,16 @@
 package app.mushaf.feature.reader
 
+import android.app.Activity
+import android.view.WindowManager
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,7 +18,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -22,15 +29,19 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.CompositionLocalProvider
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
@@ -39,6 +50,9 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.mushaf.core.designsystem.AmiriQuranFont
@@ -83,12 +97,44 @@ fun ReaderContent(
         return
     }
 
+    // Back button hides controls first; system falls through to default nav after that.
+    BackHandler(enabled = state.isControlsVisible) { onEvent(ReaderEvent.HideControls) }
+
+    // Immersive mode (TASK-075): hide system bars when controls hidden.
+    // Restore bars on leaving the reader so other screens aren't stuck immersive.
+    val view = LocalView.current
+    DisposableEffect(view, state.isControlsVisible) {
+        val window = (view.context as? Activity)?.window
+        val insets = window?.let { WindowCompat.getInsetsController(it, view) }
+        if (insets != null) {
+            insets.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            if (state.isControlsVisible) {
+                insets.show(WindowInsetsCompat.Type.systemBars())
+            } else {
+                insets.hide(WindowInsetsCompat.Type.systemBars())
+            }
+        }
+        onDispose {
+            insets?.show(WindowInsetsCompat.Type.systemBars())
+        }
+    }
+
+    // Keep-screen-on setting (part of TASK-075): only while the reader is on screen.
+    DisposableEffect(view, state.settings.keepScreenOn) {
+        val window = (view.context as? Activity)?.window
+        if (window != null && state.settings.keepScreenOn) {
+            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
+        onDispose {
+            window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
+    }
+
     val pagerState = rememberPagerState(
         initialPage = state.currentPageNumber - 1,
         pageCount = { TOTAL_PAGES },
     )
 
-    // Sync pager <-> ViewModel state changes.
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.settledPage }
             .distinctUntilChanged()
@@ -116,18 +162,57 @@ fun ReaderContent(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(0.dp),
             ) { pageIndex ->
-                PageRenderer(
-                    pageNumber = pageIndex + 1,
-                    fontFamily = fontFamily,
-                    fontSizeSp = state.settings.fontSizeSp,
-                    lineHeightMultiplier = state.settings.lineHeightMultiplier,
-                    loadPage = loadPage,
+                // Tap-to-toggle (TASK-074) lives inside each page so the pager
+                // still owns horizontal drags. Center 60% band avoids edge conflicts.
+                TapZone(onToggle = { onEvent(ReaderEvent.ToggleControls) }) {
+                    PageRenderer(
+                        pageNumber = pageIndex + 1,
+                        fontFamily = fontFamily,
+                        fontSizeSp = state.settings.fontSizeSp,
+                        lineHeightMultiplier = state.settings.lineHeightMultiplier,
+                        loadPage = loadPage,
+                    )
+                }
+            }
+
+            AnimatedVisibility(
+                visible = state.isControlsVisible,
+                enter = fadeIn(),
+                exit = fadeOut(),
+            ) {
+                TopChrome(
+                    currentPage = state.currentPageNumber,
+                    onOpenNavigation = onOpenNavigation,
                 )
             }
-            TopChrome(
-                currentPage = state.currentPageNumber,
-                onOpenNavigation = onOpenNavigation,
-            )
+        }
+    }
+}
+
+@Composable
+private fun TapZone(
+    onToggle: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+) {
+    // Central 60% vertical + 100% horizontal band — matches TASK-074 spec.
+    // Wraps `content` so the pager's swipe still reaches the underlying page.
+    BoxWithConstraints(modifier.fillMaxSize()) {
+        val heightPx = with(LocalDensity.current) { maxHeight.toPx() }
+        val topGuard = heightPx * 0.2f
+        val bottomGuard = heightPx * 0.8f
+        Box(
+            Modifier
+                .fillMaxSize()
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onTap = { offset: Offset ->
+                            if (offset.y in topGuard..bottomGuard) onToggle()
+                        },
+                    )
+                },
+        ) {
+            content()
         }
     }
 }
