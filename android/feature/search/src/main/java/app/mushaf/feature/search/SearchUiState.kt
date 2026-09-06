@@ -16,7 +16,10 @@ data class SearchUiState(
     val results: List<SearchHit> = emptyList(),
     val loading: Boolean = false,
     val hasSearched: Boolean = false,
+    val error: String? = null,
 ) {
-    val showHint: Boolean get() = !hasSearched && query.isBlank()
-    val showNoResults: Boolean get() = hasSearched && !loading && results.isEmpty() && query.isNotBlank()
+    val showHint: Boolean get() = !hasSearched && query.isBlank() && error == null
+    val showNoResults: Boolean get() =
+        hasSearched && !loading && results.isEmpty() && query.isNotBlank() && error == null
+    val showError: Boolean get() = error != null
 }

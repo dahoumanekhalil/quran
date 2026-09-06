@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Adaptive-icon foreground. A minimalist "book fold" mark centered inside the
+  safe zone (72dp centered inside 108dp). Two vertical rectangles suggest an
+  open book / mushaf spread. Placeholder — replace with a designed mark
+  before Play Store submission (docs/play-store-listing.md § App icon).
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Left page -->
+    <path
+        android:fillColor="@color/ic_launcher_foreground"
+        android:pathData="M 34,36 h 18 v 36 h -18 z" />
+    <!-- Right page -->
+    <path
+        android:fillColor="@color/ic_launcher_foreground"
+        android:pathData="M 56,36 h 18 v 36 h -18 z" />
+    <!-- Spine gap kept intentionally between the two rects to read as book -->
+</vector>

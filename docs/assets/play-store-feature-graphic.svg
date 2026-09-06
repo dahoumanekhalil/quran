@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Play Store feature graphic — 1024×500 source. Shown at the top of the
+  store listing above the fold. Restraint per docs/play-store-listing.md.
+
+  Export to PNG via:
+    Inkscape:      inkscape play-store-feature-graphic.svg -o feature-graphic.png -w 1024 -h 500
+    rsvg-convert:  rsvg-convert -w 1024 -h 500 play-store-feature-graphic.svg > feature-graphic.png
+
+  Design:
+    - Warm cream background
+    - "مصحف" in Arabic (viewer's browser needs an Arabic font that has the
+      glyph) rendered as text at large size in Accent brown
+    - Small English subtitle "Offline Quran Reader" in Muted brown
+    - No decoration
+-->
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="1024" height="500"
+     viewBox="0 0 1024 500">
+
+  <!-- Background -->
+  <rect width="1024" height="500" fill="#FBF7EC" />
+
+  <!-- Arabic wordmark. Uses system default Arabic font; browsers render OK
+       for the Play Console preview. For the FINAL export, open this file in
+       Inkscape and either (a) install a proper Arabic font, or (b) convert
+       the text to paths so the rendering is stable across systems. -->
+  <text x="512" y="270"
+        font-family="serif"
+        font-size="180"
+        fill="#7A5A2E"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl">مصحف</text>
+
+  <!-- English subtitle -->
+  <text x="512" y="360"
+        font-family="sans-serif"
+        font-size="34"
+        fill="#8A8266"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        letter-spacing="4">OFFLINE QURAN READER</text>
+</svg>

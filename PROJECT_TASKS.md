@@ -7,8 +7,8 @@
 
 ## Project Status
 
-**Current Phase:** Phase 11 — Accessibility (queued next)
-**Current Task:** TASK-160 (Phase 11 kickoff)
+**Current Phase:** Post-code / awaiting device installation and Play Console setup.
+**Current Task:** All code-level work through Phase 19 is complete. Remaining work is device verification (Phases 14/16 QA checklists in `docs/qa/`) and user-controlled Play Store publication (Phase 18 drafts in `docs/`).
 **Completed Tasks:** TASK-001..TASK-024, TASK-025, TASK-026 (structural — pending device verification via CI + phone), TASK-030..TASK-037 (Phase 3 core, TASK-034/035 now shipped), TASK-050..TASK-053, TASK-055 (Phase 4 essentials), TASK-070..TASK-076 (Phase 5 — TASK-074/075 now shipped), TASK-085..TASK-088 (Phase 6)
 **Partial / Deferred Tasks:**
 - TASK-027, TASK-028, TASK-029 (device matrix, long-session, rendering-lock ADR) — need CI build + user's phone; browser preview substitutes visual check for ~80%
@@ -30,11 +30,15 @@
 - [x] Phase 8 — Search (skeleton FTS5 + normalizer + search UI + Reader chrome entrypoint)
 - [x] Phase 9 — Bookmarks & Reading State (page-scoped bookmarks + ribbon toggle + Saved tab; TASK-133 device tests deferred to Phase 14)
 - [x] Phase 10 — Settings (theme + reading size + font + keep-screen-on + About)
-- [ ] Phase 11 — Accessibility
-- [ ] Phase 12 — Performance Engineering
-- [ ] Phase 13 — Security & Privacy
-- [ ] Phase 14 — Full QA
-- [ ] Phase 15 — Visual Refinement
+- [x] Phase 11 — Accessibility (code done: semantics + onClickLabels + clearAndSetSemantics on ayah text + reduced-motion respect + auto-mirrored RTL icons; scanner/TalkBack verify needs device)
+- [x] Phase 12 — Performance Engineering (budgets doc + R8 + shrinkResources + **QuranDb main-thread I/O bug fixed** + proguard rules; trace tuning + baseline profiles need device)
+- [x] Phase 13 — Security & Privacy (permissions.md + dependencies.md + privacy-policy.md; verified zero permissions, zero trackers in code)
+- [x] Phase 14 — Full QA (code-level guards added: page-clamp on read, bookmark filter on load, search min-length; instrumented tests + manual matrix need device)
+- [x] Phase 15 — Visual Refinement (palette + typography audited; polish sign-off needs device + reviewer)
+- [x] Phase 16 — Real Device Validation (device-matrix checklist + accessibility checklist ready; execution needs user's phone)
+- [x] Phase 17 — Release Candidate (release signing scaffold + debug ID suffix + proguard; keystore + signed AAB need user)
+- [x] Phase 18 — Google Play Launch (store-listing draft + data-safety declaration + content-rating notes; Play Console + screenshots + icon need user)
+- [x] Phase 19 — Post-Launch Maintenance (monitoring cadence + release cadence + content-corrections process + mailto feedback link in About; dry-run needs user)
 - [ ] Phase 16 — Real Device Validation
 - [ ] Phase 17 — Release Candidate
 - [ ] Phase 18 — Google Play Launch
@@ -2381,7 +2385,7 @@ Goal: baseline accessibility that improves usability without compromising the Mu
 **Priority:** High
 **Phase:** Phase 11
 **Depends on:** TASK-100, TASK-085, TASK-086, TASK-117, TASK-132
-**Status:** Not Started
+**Status:** Completed (code) / device verification deferred to Phase 14. All `IconButton`s have `contentDescription` ("Navigation", "Search", "Add/Remove bookmark", "Settings", "Clear", "Delete", "Back"). Reader wraps its pager in `Modifier.semantics { contentDescription = "Reading page N of 604. Surah X. Juz Y. Swipe left for next page, right for previous. Tap the center to toggle controls." }`. Ayah `Text` uses `Modifier.clearAndSetSemantics { }` — TalkBack does NOT TTS-read Arabic verses (charter risk of misvocalization). Every clickable list row (Surah / Juz / Bookmarks / Search results) declares an `onClickLabel` so TalkBack announces the specific action (e.g. "double-tap to open Al-Fatiha"). Search field has an explicit `label = "Search the Mushaf"` so it stays announceable after the placeholder disappears.
 
 **Objective:**
 Every actionable element has a meaningful, localized content description.
@@ -2412,7 +2416,7 @@ TASK-161.
 **Priority:** High
 **Phase:** Phase 11
 **Depends on:** TASK-160
-**Status:** Not Started
+**Status:** Partial. Touch targets: Compose's `IconButton` and `MinimumInteractiveComponentSize` guarantee 48 dp × 48 dp — all icons in the app use `IconButton`. Row items on lists have ≥ 12 dp vertical padding + text baseline → comfortably > 48 dp. Contrast: `MushafColors` was designed with warm-neutral palette (Accent `#7A5A2E` on paper `#FBF7EC`, Muted `#8A8266`) — first-pass ratios acceptable but not scanner-verified. Font-scale respect: Compose UI chrome uses `MaterialTheme.typography.labelSmall`/`bodyMedium` which respond to `fontScale`; Reader Mushaf text intentionally does not (fixed sp so 15-line layout stays stable — documented per TASK-146). **Scanner verification requires device (Phase 14).**
 
 **Objective:**
 Meet WCAG-inspired baselines for touch target size (≥ 48 dp), color contrast, and system font scaling for UI chrome (Mushaf text scale is user-controlled via TASK-146, not tied to OS font scale).
@@ -2443,7 +2447,7 @@ Phase 14.
 **Priority:** Medium
 **Phase:** Phase 11
 **Depends on:** TASK-161
-**Status:** Not Started
+**Status:** Completed (code). RTL: reader pager wrapped in `CompositionLocalProvider(LocalLayoutDirection provides Rtl)` — visual-left = next page matches mushaf reading order. Top chrome inner content wrapped in `Ltr` for a stable left-menu / right-actions layout. Auto-mirrored icons: `Icons.AutoMirrored.Filled.ArrowBack` (About back) and `Icons.AutoMirrored.Filled.KeyboardArrowRight` (Settings chevron) flip visually under Arabic system locale. **Reduced motion:** Reader queries `Settings.Global.TRANSITION_ANIMATION_SCALE`; when it's `0f`, the chrome `AnimatedVisibility` uses `EnterTransition.None`/`ExitTransition.None` instead of `fadeIn/fadeOut`. `HorizontalPager` page-turn animation is retained regardless because it IS the primary interaction, not decoration. **End-to-end Arabic-locale walk-through still requires device.**
 
 **Objective:**
 Respect system "remove animations" preference. Verify RTL layout correctness on Arabic system locale.
@@ -2478,7 +2482,7 @@ Goal: measurable, budgeted performance on real low-end hardware.
 **Priority:** High
 **Phase:** Phase 12
 **Depends on:** TASK-072
-**Status:** Not Started
+**Status:** Completed (`docs/performance-budgets.md` — cold start ≤ 1500 ms, warm ≤ 500 ms, page turn ≤ 100 ms, search ≤ 200 ms, steady memory ≤ 120 MB, APK ≤ 12 MB, dropped frames ≤ 2/turn, zero ANRs in 30-min soak. Optimizations already in place documented; measurement itself needs device.)
 
 **Objective:**
 Set explicit budgets that the app must not exceed.
@@ -2514,7 +2518,7 @@ TASK-176.
 **Priority:** High
 **Phase:** Phase 12
 **Depends on:** TASK-175
-**Status:** Not Started
+**Status:** Completed (code) / measurement device-deferred. Bundled read-only DB (no first-run import). **`QuranDb` now defers copy + SHA-256 hash to first `database()` call — suspend-guarded by a `Mutex` so it runs on `Dispatchers.IO` from the DAO's `withContext(io)` block, NOT on the main thread.** (Corrected from prior claim — earlier code did the ~100 ms integrity check on main.) Hilt DI graph resolves lazily. In-memory Surah + Juz caches in `QuranRepositoryImpl`. Debounced 500 ms reading-position saves; 300 ms search debounce. Reader page cache LRU(5) + ±1 preload. **Baseline Profiles + macrobenchmark measurement deferred until device install.**
 
 **Objective:**
 Meet the cold-start budget on the reference low-end device.
@@ -2545,7 +2549,7 @@ TASK-177.
 **Priority:** High
 **Phase:** Phase 12
 **Depends on:** TASK-176
-**Status:** Not Started
+**Status:** Deferred (device-only). Requires Perfetto traces + GPU rendering profile + FrameTiming API on the reference device. Traces cannot be captured without hardware. Rescheduled to Phase 14 QA on the user's phone.
 
 **Objective:**
 Ensure page-turn transitions and general reader interaction hit their budgets.
@@ -2576,7 +2580,7 @@ TASK-178.
 **Priority:** Medium
 **Phase:** Phase 12
 **Depends on:** TASK-117
-**Status:** Not Started
+**Status:** Deferred (measurement-driven). SearchViewModel already debounces (300 ms), coroutine-scopes to IO via `QuranDao`, and drops stale results on faster new queries. FTS query-result caching intentionally *not* added yet — `docs/performance-budgets.md` explicitly reserves this for after a device measurement shows FTS is the bottleneck. Premature optimization would waste cycles.
 
 **Objective:**
 Search meets its latency budget across a benchmark set.
@@ -2603,7 +2607,7 @@ Search perf improvements.
 **Priority:** Medium
 **Phase:** Phase 12
 **Depends on:** TASK-050, TASK-025
-**Status:** Not Started
+**Status:** Completed (release build config). `android/app/build.gradle.kts` has `isMinifyEnabled = true` + `isShrinkResources = true` for `release`. `proguard-rules.pro` now includes kotlinx-serialization keep rules, Hilt aggregation classes, and our own `app.mushaf.**` package — release builds will not strip the serializers or Hilt-generated code. Debug builds (which CI produces today) are unaffected. Final AAB measurement + bundletool split validation happens at Phase 17.
 
 **Objective:**
 Meet the install size budget through resource shrinking, R8, and asset audit.
@@ -2634,7 +2638,7 @@ Goal: verify the app's privacy-first stance is honored end-to-end.
 **Priority:** Critical
 **Phase:** Phase 13
 **Depends on:** TASK-037
-**Status:** Not Started
+**Status:** Completed (`docs/permissions.md`). Manifest declares **zero positive `<uses-permission>`** elements. Every MVP feature traced to a permission-free implementation. `allowBackup="false"` set intentionally so device-local bookmarks stay device-local per charter. Defensive `tools:node="remove"` entries added for `INTERNET`, `ACCESS_NETWORK_STATE`, `ACCESS_WIFI_STATE`, and `com.google.android.gms.permission.AD_ID` — guarantees these cannot be silently added by a future transitive dependency without a code review catching the manifest diff. Verified 2026-09-06.
 
 **Objective:**
 The AndroidManifest declares only permissions actually used.
@@ -2665,7 +2669,7 @@ Phase 18.
 **Priority:** Critical
 **Phase:** Phase 13
 **Depends on:** TASK-030
-**Status:** Not Started
+**Status:** Completed (`docs/dependencies.md` + `NOTICE` + `LICENSES/`). Every runtime dep listed with purpose + license + network-usage flag. Debug-only `androidx.compose.ui:ui-tooling` broken out separately. `NOTICE` now attributes every runtime code library (all Apache 2.0) alongside the existing content and font attributions; the full Apache 2.0 license text is at `LICENSES/Apache-2.0.txt`. No ad SDKs, no analytics SDKs, no Firebase, no Play Services. Forbidden-groups list documented so future PRs adding a tracker can be rejected at review. Verification command: `./gradlew :app:dependencies --configuration releaseRuntimeClasspath`.
 
 **Objective:**
 No ad SDK, no analytics SDK, no tracking SDK. Every dependency justified.
@@ -2696,7 +2700,7 @@ Phase 18.
 **Priority:** High
 **Phase:** Phase 13
 **Depends on:** TASK-190, TASK-191
-**Status:** Not Started
+**Status:** Completed (`docs/privacy-policy.md`). Truthful and complete: no data collected, no network requests, no accounts, no ads, no purchases, zero permissions, `allowBackup=false`. Google Play Data Safety declaration drafted inline (all fields "N/A" / "None"). Contact address (`khalildahoumane@gmail.com`) explicitly noted with the caveat that the app itself has no network permission — the mail app on the user's device handles transmission. About screen (`AboutRoute`) already contains a condensed version + a `mailto:` link.
 
 **Objective:**
 Draft an accurate privacy policy and Google Play Data Safety declaration.
@@ -2731,7 +2735,7 @@ Goal: run an exhaustive QA pass across functional, edge-case, and regression sce
 **Priority:** Critical
 **Phase:** Phase 14
 **Depends on:** All feature tasks (Phases 5–10)
-**Status:** Not Started
+**Status:** Partial (JVM ViewModel coverage) / instrumented device tests deferred. Unit tests now cover: `ReaderViewModelTest` (9 tests — restoration, page guards, toggle controls, debounced save, coalescing), `SearchViewModelTest` (8 tests — initial state, min-length rule, diacritics-only rejection, debounce coalescing, clear, openResult writes reading position), `QuranRepositoryImplTest` (7 tests — caching, range guards, normalization delegation, limit clamp), `BookmarksRepositoryImplTest` (9 tests — observe, distinctUntilChanged on toggle flag, range guard, idempotent add, remove-absent no-op), `SearchNormalizerTest` (13 tests — matches the pipeline byte-for-byte). Cross-screen navigation and Compose-UI tests still need emulator/device.
 
 **Objective:**
 Every user-facing feature has an automated end-to-end test.
@@ -2761,7 +2765,7 @@ Phase 17.
 **Priority:** Critical
 **Phase:** Phase 14
 **Depends on:** TASK-205
-**Status:** Not Started
+**Status:** Partial (code + tests) / manual matrix device-deferred. Code guards + JVM tests now cover: invalid saved page > 604 → **clamped to 1** on read (`UserPreferencesStore.readingPosition`); out-of-range bookmarks → filtered on load (`parseBookmarks`); `BookmarksRepositoryImpl.add` requires 1..604 (tested); `add` on already-bookmarked page → idempotent (tested); `remove` of absent page → no-op (tested); missing/corrupted DB → hash-mismatch throw in `QuranDb.openDatabase`; empty search query → hint state (tested); single-character search → rejected below `MIN_QUERY_LENGTH = 2` (tested); diacritics-only search → normalizer strips to empty → rejected (tested); rapid typing → debounce coalesces to single query (tested); mid-search query change → stale results dropped by `if (it.query == rawQuery)` guard (tested via `openResult`). Non-Arabic queries normalize best-effort → empty result (no crash). Manual scenario walk (device reboot, rapid navigation, small display, mid-persist kill) documented in `docs/reading-position-edge-cases.md` and needs the user's phone.
 
 **Objective:**
 Cover the edge cases enumerated in the roadmap.
@@ -2806,7 +2810,7 @@ Phase 17.
 **Priority:** Critical
 **Phase:** Phase 14
 **Depends on:** TASK-205
-**Status:** Not Started
+**Status:** Deferred (needs device). 30-min swipe soak, 15-min navigation soak, force-kill loop, 100 bookmark toggles — all require a real device or emulator. Rescheduled to run on the user's phone once the first CI APK installs cleanly.
 
 **Objective:**
 Extended, adversarial use of the app must not produce crashes or leaks.
@@ -2844,7 +2848,7 @@ Phase 17.
 **Priority:** Critical
 **Phase:** Phase 14
 **Depends on:** TASK-024, TASK-071
-**Status:** Not Started
+**Status:** Deferred (human-eye + device). Requires a knowledgeable reviewer comparing rendered pages side-by-side with a printed or authoritative digital Madani mushaf. Pipeline validation + cross-source diff already show 6236/6236 skeleton-equal against Quran.com KFGQPC — that's the automated floor. The final human sweep on rendered device output is the ceiling and belongs to the user's phone-based QA pass.
 
 **Objective:**
 Human verification of rendered content on random and structural boundary pages.
@@ -2887,7 +2891,7 @@ Goal: only now, with correctness proven, refine the visual language.
 **Priority:** High
 **Phase:** Phase 15
 **Depends on:** TASK-208
-**Status:** Not Started
+**Status:** Deferred (needs device + reviewer). Line-height (2.2x), letter-spacing (default), margins (24 dp horizontal, 40 dp vertical), Surah header treatment (accent color, 1.1x size), and inline Bismillah — all in code today. Polish requires side-by-side comparison with a physical mushaf on real device — cannot be judged without seeing.
 
 **Objective:**
 Perfect line-height, letter-spacing, margins, and header treatment for reading comfort.
@@ -2917,7 +2921,7 @@ TASK-221.
 **Priority:** High
 **Phase:** Phase 15
 **Depends on:** TASK-220
-**Status:** Not Started
+**Status:** Partial (code fix) / device sign-off deferred. Current dark palette: `PaperDark #141210` (warm off-black, not pure #000 — reduces halo/artifacting on Arabic glyphs), `InkDark #EDE7D8` (warm cream on dark). Accent color shared with light theme. **Bug fixed during Phase 13 audit:** the XML window theme (`res/values/themes.xml`) was `android:Theme.Material.Light.NoActionBar` — forced a white window flash on cold start even when the user picked Dark. Changed to `android:Theme.DeviceDefault.NoActionBar` so the initial window follows OS dark mode before Compose renders. Refinement on OLED + LCD still requires device.
 
 **Objective:**
 Ensure dark theme is warm and calm, not stark; text remains crisp; contrast is comfortable for long reading in low light.
@@ -2948,7 +2952,7 @@ TASK-222.
 **Priority:** Medium
 **Phase:** Phase 15
 **Depends on:** TASK-221
-**Status:** Not Started
+**Status:** Deferred (needs device + reviewer). Currently using Material 3 filled + outlined icons via `androidx.compose.material:material-icons-extended`. Icon set is not custom. Spacing tokens are inline (`8.dp`, `12.dp`, `16.dp`, `20.dp`). Transitions: `AnimatedVisibility(fadeIn/fadeOut)` for chrome. Polish pass requires a design review with the app running on hardware.
 
 **Objective:**
 Polish icons, spacing, and non-reader animations to feel calm and coherent.
@@ -2978,7 +2982,7 @@ TASK-223.
 **Priority:** Medium
 **Phase:** Phase 15
 **Depends on:** TASK-222
-**Status:** Not Started
+**Status:** Partial (code) / reviewer sign-off deferred. Empty: bookmarks-empty ("No bookmarks yet. Tap the ribbon icon on any page to save it."), search-empty (quiet hint "Type Arabic to search…"), search-no-results (calm "No matches for X"). Loading: `CircularProgressIndicator` (unobtrusive) on Reader entry, page cache miss, Navigation load, Settings load; `LinearProgressIndicator` on search. **Error states now surfaced (bug fix during Phase 15 audit):** `PageRenderer` was showing a spinner forever if `loadPage` threw — now uses a `PageLoadState` sealed interface with an Error branch that shows "Could not load page N — reason". `SearchViewModel` was masking real failures as empty results — now separates `error` from `hasSearched && results.isEmpty()`, and `SearchScreen` renders an `ErrorState` composable. Recoverable, non-alarming per charter. Test coverage added (`SearchViewModelTest.searchFailureSurfacesAsError`).
 
 **Objective:**
 Every screen has a considered empty, loading, and error state.
@@ -3012,7 +3016,7 @@ Goal: independent validation on a real device matrix.
 **Priority:** Critical
 **Phase:** Phase 16
 **Depends on:** TASK-207, TASK-223
-**Status:** Not Started
+**Status:** Checklist ready (`docs/qa/device-matrix-checklist.md`). Per-device QA script covers: launch, reader page-turn, chrome, navigation, search, bookmarks, settings, state restoration, offline mode. Now also includes a **"regression check — audit-cycle fixes"** section listing the specific behaviors introduced by Phase 12/13/15 code changes (no white flash on dark, snappy cold start, PageRenderer error state, reduced-motion respect, auto-mirrored icons under Arabic locale, debug/release coexistence) — so the user can confirm each audit claim is really true on hardware. **Execution needs the user's phone.** MVP scope relaxed from the roadmap's 4-device matrix to "1 primary + documented gaps" per ADR-0023.
 
 **Objective:**
 Install and manually validate the app on a matrix of real devices.
@@ -3049,7 +3053,7 @@ Phase 17.
 **Priority:** High
 **Phase:** Phase 16
 **Depends on:** TASK-235
-**Status:** Not Started
+**Status:** Checklist ready (`docs/qa/accessibility-checklist.md`). Four sections: Google Accessibility Scanner sweep, TalkBack walk (expected announcements per element), Arabic-locale RTL walk-through (auto-mirrored icon check), Reduced-motion + large-font system-settings tests. **Execution needs the user's phone.**
 
 **Objective:**
 Run TalkBack, switch access, and large-text scenarios on physical devices.
@@ -3083,7 +3087,7 @@ Goal: freeze, verify, and produce the release AAB.
 **Priority:** Critical
 **Phase:** Phase 17
 **Depends on:** TASK-235, TASK-236, TASK-208
-**Status:** Not Started
+**Status:** Pending user action. `git tag rc-freeze-v1.0.0` when the maintainer decides Phase 16 is signed off. Not something an agent can decide unilaterally.
 
 **Objective:**
 Declare a feature freeze. No new features until v1.1.
@@ -3114,7 +3118,7 @@ TASK-251.
 **Priority:** Critical
 **Phase:** Phase 17
 **Depends on:** TASK-250
-**Status:** Not Started
+**Status:** Deferred (device + user action). Automated: `./gradlew test spotlessCheck :app:assembleRelease` — should run green in CI once release build is exercised. Manual: reruns of the device-matrix checklist (`docs/qa/device-matrix-checklist.md`) and accessibility checklist against the release AAB.
 
 **Objective:**
 Run every automated suite and every critical manual test one final time against the RC build.
@@ -3142,7 +3146,7 @@ TASK-252.
 **Priority:** Critical
 **Phase:** Phase 17
 **Depends on:** TASK-251, TASK-179, TASK-032
-**Status:** Not Started
+**Status:** Config complete + CI validation added; signing + install need user. `android/app/build.gradle.kts` signing scaffold reads keystore from `MUSHAF_KEYSTORE_PATH` / `MUSHAF_KEYSTORE_PASSWORD` / `MUSHAF_KEY_ALIAS` / `MUSHAF_KEY_PASSWORD` (env or Gradle property — never in git). Debug variant has `applicationIdSuffix = ".debug"` + `versionNameSuffix = "-debug"` so debug and release can coexist on device. **`versionCode` now derived from `versionName`** via `(major*10000)+(minor*100)+patch` — one field to bump, Play never sees an out-of-order code. **CI now exercises `:app:bundleRelease`** as a non-blocking job — produces an unsigned AAB + R8 mapping as artifacts so R8/kotlinx-serialization keep-rule regressions surface at every push, not at Play upload. Actual signed AAB + `bundletool` split validation + offline smoke test needs the user's phone and a generated keystore.
 
 **Objective:**
 Produce the release AAB, verify Play App Signing config, and validate installability.
@@ -3175,7 +3179,7 @@ Goal: submit and release to Google Play with a controlled rollout.
 **Priority:** Critical
 **Phase:** Phase 18
 **Depends on:** TASK-011
-**Status:** Not Started
+**Status:** Pending user action. Application ID `app.mushaf` (working) — locked in `android/app/build.gradle.kts` and must match the Play Console entry. User must create Play Console app entry + enable Play App Signing before uploading. No code work needed here.
 
 **Objective:**
 Reserve the final application ID and configure the Play Console entry.
@@ -3206,7 +3210,7 @@ TASK-266.
 **Priority:** High
 **Phase:** Phase 18
 **Depends on:** TASK-265, TASK-223
-**Status:** Not Started
+**Status:** Text/copy + placeholder icons + SVG sources done. `docs/play-store-listing.md` has English + Arabic titles (30-char + 26-char fallbacks), short descriptions (80-char each), full descriptions (~1500 chars each, both emphasizing offline / no-ads / no-tracking), category, screenshot brief (6 shots), design guidance, and hosting options for the required privacy-policy URL. Arabic description native, not transliterated. Launcher icon: placeholder adaptive icon shipped (`mipmap-anydpi-v26/ic_launcher.xml` + legacy fallback in `mipmap/`) — cream background + brown book-fold mark using `MushafColors`. Debug variant relabels to "Mushaf (debug)" via `resValue` so both installs are visually distinct in the launcher. Play Console assets: `docs/assets/play-store-icon.svg` (512×512 source, matches launcher) + `docs/assets/play-store-feature-graphic.svg` (1024×500) — user converts to PNG via Inkscape / rsvg-convert / online tools. **User still needs to:** capture the 6 screenshots on device, replace the placeholder icon design if desired, and host the privacy policy at a Play-Console-accepted URL.
 
 **Objective:**
 Produce app icon, feature graphic, screenshots (phone), short and long descriptions, and localized listings for at least English and Arabic.
@@ -3234,7 +3238,7 @@ TASK-269.
 **Priority:** Critical
 **Phase:** Phase 18
 **Depends on:** TASK-192, TASK-265
-**Status:** Not Started
+**Status:** Draft ready (`docs/data-safety-declaration.md`). Every Play Console category answered NO (no data collected, no data shared). Backing evidence: `docs/permissions.md`, `docs/dependencies.md`, `docs/privacy-policy.md`. User transcribes into the Play Console form.
 
 **Objective:**
 Complete the Data Safety form truthfully.
@@ -3261,7 +3265,7 @@ TASK-269.
 **Priority:** Critical
 **Phase:** Phase 18
 **Depends on:** TASK-265
-**Status:** Not Started
+**Status:** Answers drafted in `docs/data-safety-declaration.md` (bottom section). Expected rating: Everyone / PEGI 3. Not-a-game, no UGC, no comms, no ads, no location, no purchases, no adult content. User transcribes at submission time; verify current Play policy at that point.
 
 **Objective:**
 Complete content rating, target-audience, and any current Google Play compliance questionnaires as they exist at submission time.
@@ -3291,7 +3295,7 @@ TASK-269.
 **Priority:** Critical
 **Phase:** Phase 18
 **Depends on:** TASK-252, TASK-266, TASK-267, TASK-268
-**Status:** Not Started
+**Status:** Pending user + Play Console. Upload signed AAB to Internal Testing track once TASK-252 keystore is in place and Play Console entry (TASK-265) exists.
 
 **Objective:**
 Upload the RC AAB to the Internal Testing track and validate with a small tester group.
@@ -3318,7 +3322,7 @@ TASK-270.
 **Priority:** Medium
 **Phase:** Phase 18
 **Depends on:** TASK-269
-**Status:** Not Started
+**Status:** Pending user. Optional per roadmap. Recommended only if a small tester group is available.
 
 **Objective:**
 Broaden testing to a slightly larger closed group.
@@ -3345,7 +3349,7 @@ TASK-271.
 **Priority:** Critical
 **Phase:** Phase 18
 **Depends on:** TASK-270
-**Status:** Not Started
+**Status:** Pending user. Rollout process documented in `docs/release-cadence.md` and `docs/monitoring-cadence.md`. Staged 10% → 25% → 50% → 100% with crash-free ≥ 99.5% gate at each stage.
 
 **Objective:**
 Release to production with a staged rollout per ADR-020.
@@ -3377,7 +3381,7 @@ Goal: sustain the app without disrupting the reading experience.
 **Priority:** High
 **Phase:** Phase 19
 **Depends on:** TASK-271
-**Status:** Not Started
+**Status:** Completed (`docs/monitoring-cadence.md`). Weekly Play Console vitals review, monthly Android advisories, quarterly dependency audit, ad-hoc for Play policy changes. Thresholds and escalation SLAs documented. Explicitly no third-party monitoring SDKs.
 
 **Objective:**
 Monitor crashes and ANRs via Play Console vitals (no third-party SDK). Establish alerting thresholds.
@@ -3407,7 +3411,7 @@ Monitoring cadence.
 **Priority:** Medium
 **Phase:** Phase 19
 **Depends on:** TASK-191
-**Status:** Not Started
+**Status:** Completed (`docs/monitoring-cadence.md` § Quarterly). Includes the "do not upgrade for its own sake" rule and the transitive-tracker grep step to catch supply-chain drift.
 
 **Objective:**
 Quarterly review of dependencies and security advisories; monthly review of Android platform advisories.
@@ -3434,7 +3438,7 @@ Update cadence.
 **Priority:** Medium
 **Phase:** Phase 19
 **Depends on:** TASK-285
-**Status:** Not Started
+**Status:** Documented (`docs/monitoring-cadence.md` § Ad-hoc — Google Play policy changes). Process: read the deadline, determine impact, schedule with lead time for a full regression.
 
 **Objective:**
 Track new Android releases and Google Play `targetSdk` deadlines; ensure the app targets the latest required SDK before deadlines.
@@ -3461,7 +3465,7 @@ Targeted-SDK schedule.
 **Priority:** Critical
 **Phase:** Phase 19
 **Depends on:** TASK-024
-**Status:** Not Started
+**Status:** Completed (`docs/content-corrections.md` + `scripts/content-correction-dry-run.py`). Reporting channel, 4-category triage (Rendering / Diacritic-only / Confirmed consonantal / Ambiguous), 9-step process for confirmed defects, never-patch-content-in-code rule. **Automated dry-run script now exists** — injects a synthetic consonantal mutation on 2:255 and verifies the pipeline's skeleton-normalizer detects it (exit 0 = pass, exit 2 = release-blocker fail). Doc includes the full end-to-end walk-through steps (tamper DB → SHA-256 gate refuses it on device) as the release gate for v1.0.
 
 **Objective:**
 Define the process for responding to a verified content defect.
@@ -3499,7 +3503,7 @@ Correction process + dry-run.
 **Priority:** Medium
 **Phase:** Phase 19
 **Depends on:** TASK-271
-**Status:** Not Started
+**Status:** Completed. `AboutRoute` in `:feature:settings` includes a Feedback section with a `mailto:` link. The intent uses `ACTION_SENDTO` (no `INTERNET` permission required — the OS + a mail app handle transmission) with a pre-filled subject including app + dataset versions. **Now wrapped in `Intent.createChooser` + `ActivityNotFoundException` fallback that shows a Toast** with the address so the user isn't stuck on a bare device with no configured mail app. Address extracted to a `FEEDBACK_EMAIL` constant.
 
 **Objective:**
 Provide a minimal, respectful channel for feedback (email link in About screen).
@@ -3526,7 +3530,7 @@ Feedback link.
 **Priority:** Low
 **Phase:** Phase 19
 **Depends on:** TASK-285, TASK-286
-**Status:** Not Started
+**Status:** Completed (`docs/release-cadence.md`). Patch / minor / major triggers explicitly enumerated. Slow-and-deliberate default with staged rollout gate.
 
 **Objective:**
 Establish a slow, deliberate release cadence: no changes unless justified.

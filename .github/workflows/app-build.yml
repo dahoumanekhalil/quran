@@ -83,3 +83,32 @@ jobs:
             android/**/build/test-results/**
           if-no-files-found: ignore
           retention-days: 14
+
+      # ------------------------------------------------------------------
+      # Phase 17 (TASK-252): exercise the release build path early so R8 /
+      # resource-shrinking / proguard-rules issues surface here, not on the
+      # Play upload attempt. Produces an *unsigned* AAB — install/upload is
+      # not the goal; catching keep-rule regressions is.
+      # ------------------------------------------------------------------
+      - name: Bundle release AAB (unsigned — R8 verification)
+        working-directory: android
+        run: gradle --no-daemon --stacktrace :app:bundleRelease
+        continue-on-error: true      # do not gate the debug APK on release build until first success
+
+      - name: Upload release AAB (unsigned)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mushaf-app-aab-unsigned
+          path: android/app/build/outputs/bundle/release/*.aab
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Upload R8 mapping (if release build ran)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r8-mapping
+          path: android/app/build/outputs/mapping/release/mapping.txt
+          if-no-files-found: ignore
+          retention-days: 30

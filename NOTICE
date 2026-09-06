@@ -51,3 +51,40 @@ License: SIL Open Font License, Version 1.1. Full text in
         LICENSES/SIL-OFL-1.1.txt.
 Source: https://github.com/aliftype/amiri
 Selected: ADR-0024 as documented alternate font (POST-MVP alt-font pathway).
+
+---
+
+Runtime code libraries (all Apache License 2.0)
+Full license text: LICENSES/Apache-2.0.txt
+Live inventory: docs/dependencies.md
+
+The following runtime libraries are shipped inside the Android APK:
+
+  Kotlin standard library and toolchain
+    org.jetbrains.kotlin:kotlin-stdlib
+    org.jetbrains.kotlinx:kotlinx-coroutines-android
+    org.jetbrains.kotlinx:kotlinx-serialization-json
+    Copyright (c) 2010-2026 JetBrains s.r.o. and Kotlin Programming Language contributors.
+
+  AndroidX (Google, Inc.)
+    androidx.core:core-ktx
+    androidx.lifecycle:lifecycle-runtime-ktx, lifecycle-viewmodel-compose, lifecycle-runtime-compose
+    androidx.activity:activity-compose
+    androidx.compose (BOM 2024.10.01): ui, ui-graphics, ui-tooling-preview, foundation, material3, material-icons-extended
+    androidx.compose.ui:ui-tooling (debug-only)
+    androidx.navigation:navigation-compose
+    androidx.sqlite:sqlite-framework, sqlite-ktx
+    androidx.datastore:datastore-preferences
+    androidx.hilt:hilt-navigation-compose
+    Copyright (c) Google, Inc. and the AndroidX authors.
+
+  Dagger / Hilt (Google, Inc.)
+    com.google.dagger:hilt-android
+    Copyright (c) 2012 The Dagger Authors.
+
+Each of the above retains its original Apache 2.0 license. This project makes
+no claim of ownership over these libraries. The Apache 2.0 license permits
+redistribution provided attribution is preserved — this NOTICE, together with
+LICENSES/Apache-2.0.txt, serves that purpose. `docs/dependencies.md` is the
+canonical version-pinned inventory reviewed on a quarterly cadence per
+`docs/monitoring-cadence.md`.

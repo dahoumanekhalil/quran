@@ -33,8 +33,13 @@ class UserPreferencesStore @Inject constructor(
 
     // --- Reading position ---
     val readingPosition: Flow<ReadingPosition> = ds.data.map { prefs ->
+        // Clamp on read: if the persisted page is out-of-range (POST-MVP schema
+        // drift, tampered file, downgraded install), fall back to page 1 rather
+        // than crashing the pager on an invalid page index.
+        val rawPage = prefs[KEY_LAST_PAGE] ?: 1
+        val safePage = if (rawPage in 1..604) rawPage else 1
         ReadingPosition(
-            pageNumber = prefs[KEY_LAST_PAGE] ?: 1,
+            pageNumber = safePage,
             ayahGlobalIndex = prefs[KEY_LAST_AYAH].takeIf { it != null && it > 0 },
             updatedAtEpochMillis = prefs[KEY_LAST_UPDATED] ?: 0L,
         )
@@ -107,7 +112,11 @@ class UserPreferencesStore @Inject constructor(
     private fun parseBookmarks(raw: String?): List<Bookmark> {
         if (raw.isNullOrEmpty()) return emptyList()
         return runCatching {
-            JSON.decodeFromString(BOOKMARK_LIST_SERIALIZER, raw).map(BookmarkDto::toDomain)
+            JSON.decodeFromString(BOOKMARK_LIST_SERIALIZER, raw)
+                .map(BookmarkDto::toDomain)
+                // Defense-in-depth: reject bookmarks referencing an out-of-range page
+                // (only possible via manual file edit or downgrade of a POST-MVP schema).
+                .filter { it.pageNumber in 1..604 }
         }.getOrDefault(emptyList())
     }
 

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import app.mushaf.core.domain.model.ReadingPosition
 import app.mushaf.core.domain.repository.QuranRepository
 import app.mushaf.core.domain.repository.ReadingPositionRepository
+import app.mushaf.core.domain.search.SearchNormalizer
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -68,19 +69,38 @@ class SearchViewModel @Inject constructor(
     }
 
     private suspend fun runSearch(rawQuery: String) {
-        if (rawQuery.isBlank()) {
-            _uiState.update { it.copy(results = emptyList(), loading = false, hasSearched = false) }
+        // Roadmap TASK-206: require ≥ 2 characters *after normalization*.
+        // A single letter (or a query that's entirely diacritics/tatweel that
+        // normalize away to nothing) is too broad to be useful and would run
+        // FTS across most of the corpus for no user benefit.
+        val effective = SearchNormalizer.normalize(rawQuery)
+        if (effective.length < MIN_QUERY_LENGTH) {
+            _uiState.update { it.copy(results = emptyList(), loading = false, hasSearched = false, error = null) }
             return
         }
-        _uiState.update { it.copy(loading = true) }
-        val hits = runCatching { quranRepository.search(rawQuery) }.getOrDefault(emptyList())
+        _uiState.update { it.copy(loading = true, error = null) }
+        val outcome = runCatching { quranRepository.search(rawQuery) }
         _uiState.update {
             // Only apply if the query hasn't changed since we launched.
-            if (it.query == rawQuery) {
-                it.copy(results = hits, loading = false, hasSearched = true)
-            } else {
-                it
-            }
+            if (it.query != rawQuery) return@update it
+            outcome.fold(
+                onSuccess = { hits ->
+                    it.copy(results = hits, loading = false, hasSearched = true, error = null)
+                },
+                onFailure = { e ->
+                    // Distinguish "search failed" from "no matches" (TASK-223).
+                    it.copy(
+                        results = emptyList(),
+                        loading = false,
+                        hasSearched = true,
+                        error = e.message ?: e::class.simpleName ?: "Search failed",
+                    )
+                },
+            )
         }
+    }
+
+    private companion object {
+        const val MIN_QUERY_LENGTH = 2
     }
 }

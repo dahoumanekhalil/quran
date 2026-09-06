@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Placeholder launcher icon palette. Matches MushafColors so the launcher
+  icon reads as belonging to the app even before a designed icon is produced.
+  See docs/play-store-listing.md for the design guidance.
+-->
+<resources>
+    <color name="ic_launcher_background">#FBF7EC</color> <!-- MushafColors.PaperLight -->
+    <color name="ic_launcher_foreground">#7A5A2E</color> <!-- MushafColors.Accent -->
+</resources>

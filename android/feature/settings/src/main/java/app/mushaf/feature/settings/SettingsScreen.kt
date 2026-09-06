@@ -14,7 +14,7 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -131,7 +131,7 @@ fun SettingsContent(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text("About Mushaf", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-                    Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = MushafColors.Muted)
+                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = MushafColors.Muted)
                 }
                 HorizontalDivider(color = MushafColors.Muted.copy(alpha = 0.15f))
             }

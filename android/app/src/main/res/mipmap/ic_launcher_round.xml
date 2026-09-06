@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Round-launcher fallback for API 24-25. Same content as ic_launcher for
+  simplicity — pre-adaptive-icon launchers apply their own rounding.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="@color/ic_launcher_background"
+        android:pathData="M 0,0 h 108 v 108 h -108 z" />
+    <path
+        android:fillColor="@color/ic_launcher_foreground"
+        android:pathData="M 34,36 h 18 v 36 h -18 z" />
+    <path
+        android:fillColor="@color/ic_launcher_foreground"
+        android:pathData="M 56,36 h 18 v 36 h -18 z" />
+</vector>

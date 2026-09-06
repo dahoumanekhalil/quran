@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Mushaf</string>
+    <!--
+      app_name is now provided per-variant via resValue in build.gradle.kts:
+        debug   → "Mushaf (debug)"
+        release → "Mushaf"
+      Keeping this file for future non-variant-specific strings.
+    -->
 </resources>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Play Store icon — 512×512 source. Matches the in-app launcher icon
+  (android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml). Use this as
+  the source of truth; export to PNG via one of:
+
+    Inkscape:      inkscape play-store-icon.svg -o play-store-icon.png -w 512 -h 512
+    rsvg-convert:  rsvg-convert -w 512 -h 512 play-store-icon.svg > play-store-icon.png
+    Online:        upload to squoosh.app or convertio.co and export at 512×512
+
+  Then upload the resulting PNG to Play Console.
+
+  This is a PLACEHOLDER matching the launcher-icon design. Replace with a
+  designed mark before public release per the guidance in
+  docs/play-store-listing.md § App icon.
+
+  Design:
+    - Background: MushafColors.PaperLight (#FBF7EC — warm cream)
+    - Mark: MushafColors.Accent (#7A5A2E — warm brown), two vertical bars =
+      open mushaf / book fold. Centered in the 512×512 canvas.
+-->
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="512" height="512"
+     viewBox="0 0 512 512">
+
+  <!-- Background -->
+  <rect width="512" height="512" fill="#FBF7EC" />
+
+  <!-- Left page -->
+  <rect x="161" y="171" width="86" height="170" fill="#7A5A2E" />
+
+  <!-- Right page (small gap at spine) -->
+  <rect x="265" y="171" width="86" height="170" fill="#7A5A2E" />
+</svg>

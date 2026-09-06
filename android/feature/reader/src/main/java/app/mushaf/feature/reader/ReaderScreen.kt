@@ -1,9 +1,12 @@
 package app.mushaf.feature.reader
 
 import android.app.Activity
+import android.provider.Settings
 import android.view.WindowManager
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
@@ -38,14 +41,19 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
@@ -163,7 +171,21 @@ fun ReaderContent(
 
     // Reader: swiping in RTL — visual left = next page.
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
-        Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+        // TalkBack description of the reading context. Charter says Arabic ayah
+        // text is not TTS-spoken (risk of misvocalization) — we describe the
+        // page and surah instead. Swipe/tap hints are announced with the value.
+        val a11yDescription = buildString {
+            append("Reading page ").append(state.currentPageNumber).append(" of ").append(TOTAL_PAGES).append(". ")
+            state.currentSurahNameAr?.let { append("Surah ").append(it).append(". ") }
+            state.currentJuzNumber?.let { append("Juz ").append(it).append(". ") }
+            append("Swipe left for next page, right for previous. Tap the center to toggle controls.")
+        }
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .semantics { contentDescription = a11yDescription },
+        ) {
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier.fillMaxSize(),
@@ -182,10 +204,17 @@ fun ReaderContent(
                 }
             }
 
+            // Respect the system "remove animations" preference (TASK-162).
+            val ctx = LocalContext.current
+            val motionScale = remember {
+                Settings.Global.getFloat(ctx.contentResolver, Settings.Global.TRANSITION_ANIMATION_SCALE, 1f)
+            }
+            val enter = if (motionScale == 0f) EnterTransition.None else fadeIn()
+            val exit = if (motionScale == 0f) ExitTransition.None else fadeOut()
             AnimatedVisibility(
                 visible = state.isControlsVisible,
-                enter = fadeIn(),
-                exit = fadeOut(),
+                enter = enter,
+                exit = exit,
             ) {
                 TopChrome(
                     currentPage = state.currentPageNumber,
@@ -296,15 +325,46 @@ private fun PageRenderer(
     lineHeightMultiplier: Float,
     loadPage: suspend (Int) -> Page,
 ) {
-    val page by produceState<Page?>(initialValue = null, key1 = pageNumber) {
-        value = loadPage(pageNumber)
+    // Explicit tri-state: Loading, Error, or Loaded page. If `loadPage` throws
+    // (SQL failure, DB corruption after first use), we surface it as a quiet
+    // error instead of spinning forever (TASK-223).
+    val loadState by produceState<PageLoadState>(initialValue = PageLoadState.Loading, key1 = pageNumber) {
+        value = runCatching { loadPage(pageNumber) }
+            .fold(
+                onSuccess = { PageLoadState.Loaded(it) },
+                onFailure = { PageLoadState.Error(it.message ?: it::class.simpleName ?: "unknown") },
+            )
     }
-    val current = page
-    if (current == null) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator()
+    val current: Page = when (val s = loadState) {
+        PageLoadState.Loading -> {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+            return
         }
-        return
+        is PageLoadState.Error -> {
+            Column(
+                Modifier.fillMaxSize().padding(32.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(
+                    "Could not load page $pageNumber",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MushafColors.Muted,
+                    textAlign = TextAlign.Center,
+                )
+                Text(
+                    s.reason,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MushafColors.Muted,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
+            }
+            return
+        }
+        is PageLoadState.Loaded -> s.page
     }
     Column(
         modifier = Modifier
@@ -339,7 +399,10 @@ private fun PageRenderer(
             lineHeight = (fontSizeSp * lineHeightMultiplier).sp,
             color = MaterialTheme.colorScheme.onBackground,
             textAlign = TextAlign.Justify,
-            modifier = Modifier.fillMaxWidth(),
+            // Charter: TalkBack must not TTS-read Arabic ayahs — mispronunciation
+            // is a religious-content risk. The outer Box already announces
+            // the reading context (page + surah + juz).
+            modifier = Modifier.fillMaxWidth().clearAndSetSemantics { },
         )
     }
 }
@@ -347,6 +410,12 @@ private fun PageRenderer(
 private fun toArabicNumerals(n: Int): String {
     val map = charArrayOf('٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩')
     return n.toString().map { ch -> map[ch.digitToInt()] }.joinToString("")
+}
+
+private sealed interface PageLoadState {
+    data object Loading : PageLoadState
+    data class Loaded(val page: Page) : PageLoadState
+    data class Error(val reason: String) : PageLoadState
 }
 
 private const val TOTAL_PAGES = 604

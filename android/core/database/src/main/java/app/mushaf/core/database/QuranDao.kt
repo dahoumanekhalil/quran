@@ -1,6 +1,5 @@
 package app.mushaf.core.database
 
-import android.database.sqlite.SQLiteDatabase
 import app.mushaf.core.common.IoDispatcher
 import app.mushaf.core.domain.model.Ayah
 import app.mushaf.core.domain.model.Juz
@@ -19,9 +18,9 @@ class QuranDao @Inject constructor(
     private val db: QuranDb,
     @IoDispatcher private val io: CoroutineDispatcher,
 ) {
-    private val sqlite: SQLiteDatabase get() = db.database
 
     suspend fun allSurahs(): List<Surah> = withContext(io) {
+        val sqlite = db.database()
         val out = ArrayList<Surah>(114)
         sqlite.rawQuery(
             """
@@ -51,6 +50,7 @@ class QuranDao @Inject constructor(
     }
 
     suspend fun surah(surahNumber: Int): Surah = withContext(io) {
+        val sqlite = db.database()
         sqlite.rawQuery(
             """
             SELECT number, name_ar, name_translit_en, name_translation_en,
@@ -77,6 +77,7 @@ class QuranDao @Inject constructor(
     }
 
     suspend fun allJuz(): List<Juz> = withContext(io) {
+        val sqlite = db.database()
         val out = ArrayList<Juz>(30)
         sqlite.rawQuery(
             """
@@ -102,6 +103,7 @@ class QuranDao @Inject constructor(
     }
 
     suspend fun page(pageNumber: Int): Page = withContext(io) {
+        val sqlite = db.database()
         val pageMeta = sqlite.rawQuery(
             """
             SELECT number, first_ayah_global_index, last_ayah_global_index,
@@ -159,6 +161,7 @@ class QuranDao @Inject constructor(
     }
 
     suspend fun pageOfSurahStart(surahNumber: Int): Int = withContext(io) {
+        val sqlite = db.database()
         sqlite.rawQuery(
             """
             SELECT a.page FROM ayahs a JOIN surahs s ON s.number = a.surah
@@ -172,6 +175,7 @@ class QuranDao @Inject constructor(
     }
 
     suspend fun pageOfJuzStart(juzNumber: Int): Int = withContext(io) {
+        val sqlite = db.database()
         sqlite.rawQuery(
             """
             SELECT a.page FROM juz j JOIN ayahs a ON a.global_index = j.first_ayah_global_index
@@ -193,6 +197,7 @@ class QuranDao @Inject constructor(
      * ayah for a stable, mushaf-ordered listing.
      */
     suspend fun search(normalizedQuery: String, limit: Int): List<SearchHit> = withContext(io) {
+        val sqlite = db.database()
         val out = ArrayList<SearchHit>(limit.coerceAtMost(200))
         sqlite.rawQuery(
             """

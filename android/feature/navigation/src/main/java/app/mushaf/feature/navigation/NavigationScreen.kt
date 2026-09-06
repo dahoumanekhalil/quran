@@ -146,7 +146,7 @@ private fun SurahList(surahs: List<Surah>, onClick: (Surah) -> Unit) {
             Row(
                 Modifier
                     .fillMaxWidth()
-                    .clickable { onClick(s) }
+                    .clickable(onClickLabel = "Open ${s.nameTranslitEn}") { onClick(s) }
                     .padding(horizontal = 20.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -185,7 +185,7 @@ private fun JuzList(juz: List<Juz>, onClick: (Juz) -> Unit) {
             Row(
                 Modifier
                     .fillMaxWidth()
-                    .clickable { onClick(j) }
+                    .clickable(onClickLabel = "Open Juz ${j.number}") { onClick(j) }
                     .padding(horizontal = 20.dp, vertical = 14.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -269,7 +269,7 @@ private fun BookmarkList(
             Row(
                 Modifier
                     .fillMaxWidth()
-                    .clickable { onClick(bm) }
+                    .clickable(onClickLabel = "Open page ${bm.pageNumber}") { onClick(bm) }
                     .padding(horizontal = 20.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {

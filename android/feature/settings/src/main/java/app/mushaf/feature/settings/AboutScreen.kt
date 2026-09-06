@@ -1,6 +1,11 @@
 package app.mushaf.feature.settings
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,7 +16,7 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -20,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import app.mushaf.core.database.QuranAsset
@@ -47,7 +53,7 @@ fun AboutRoute(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onClose) {
-                Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
             }
             Text(
                 "About",
@@ -98,9 +104,65 @@ fun AboutRoute(
             Section("Source") {
                 Body("https://github.com/dahoumanekhalil/quran")
             }
+
+            Section("Feedback") {
+                FeedbackLink(appVersionName = appVersionName, appVersionCode = appVersionCode)
+            }
         }
     }
 }
+
+/**
+ * mailto: link for user feedback (TASK-289). Fires a chooser via ACTION_SENDTO
+ * so any installed mail app can compose. No network permission required —
+ * ACTION_SENDTO delegates to the OS + a third-party mail app; nothing is
+ * transmitted from Mushaf itself.
+ */
+@Composable
+private fun FeedbackLink(appVersionName: String, appVersionCode: Int) {
+    val ctx = LocalContext.current
+    val subject = "Mushaf $appVersionName ($appVersionCode) feedback"
+    val body = buildString {
+        append("App version: ").append(appVersionName).append(" (").append(appVersionCode).append(")\n")
+        append("Dataset: ").append(QuranAsset.CONTENT_VERSION).append("\n\n")
+        append("(Please describe your feedback below.)")
+    }
+    Body("Send feedback via email")
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clickable {
+                val sendTo = Intent(Intent.ACTION_SENDTO).apply {
+                    data = Uri.fromParts("mailto", FEEDBACK_EMAIL, null)
+                    putExtra(Intent.EXTRA_SUBJECT, subject)
+                    putExtra(Intent.EXTRA_TEXT, body)
+                }
+                // Wrap in chooser so the OS handles the "no mail app" case
+                // gracefully with a picker. Even so, on a bare device with
+                // zero mail apps the chooser itself throws — fall back to a
+                // Toast that shows the address so the user isn't stuck.
+                val chooser = Intent.createChooser(sendTo, "Send feedback")
+                try {
+                    ctx.startActivity(chooser)
+                } catch (_: ActivityNotFoundException) {
+                    Toast.makeText(
+                        ctx,
+                        "No email app installed. Email us at $FEEDBACK_EMAIL",
+                        Toast.LENGTH_LONG,
+                    ).show()
+                }
+            }
+            .padding(vertical = 8.dp),
+    ) {
+        Text(
+            FEEDBACK_EMAIL,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MushafColors.Accent,
+        )
+    }
+}
+
+private const val FEEDBACK_EMAIL = "khalildahoumane@gmail.com"
 
 @Composable
 private fun Section(title: String, content: @Composable () -> Unit) {

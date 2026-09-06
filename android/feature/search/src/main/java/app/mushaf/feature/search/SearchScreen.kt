@@ -77,6 +77,7 @@ fun SearchContent(
             value = state.query,
             onValueChange = onQueryChanged,
             singleLine = true,
+            label = { Text("Search the Mushaf") },
             placeholder = { Text("ابحث في المصحف") },
             trailingIcon = {
                 if (state.query.isNotEmpty()) {
@@ -98,11 +99,37 @@ fun SearchContent(
 
         Box(Modifier.fillMaxSize()) {
             when {
+                state.showError -> ErrorState(state.error!!)
                 state.showHint -> HintState()
                 state.showNoResults -> NoResultsState(state.query)
                 else -> ResultsList(state.results, onResultClick)
             }
         }
+    }
+}
+
+@Composable
+private fun ErrorState(message: String) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .padding(32.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            "Search failed",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MushafColors.Muted,
+            textAlign = TextAlign.Center,
+        )
+        Text(
+            message,
+            style = MaterialTheme.typography.labelSmall,
+            color = MushafColors.Muted,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 8.dp),
+        )
     }
 }
 
@@ -159,7 +186,7 @@ private fun ResultsList(
             Column(
                 Modifier
                     .fillMaxWidth()
-                    .clickable { onClick(hit) }
+                    .clickable(onClickLabel = "Open page ${hit.ayah.page}, ayah ${hit.ayah.surah}:${hit.ayah.ayah}") { onClick(hit) }
                     .padding(horizontal = 20.dp, vertical = 12.dp),
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
