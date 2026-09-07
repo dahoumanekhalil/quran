@@ -56,6 +56,7 @@ TANZIL_XML = SOURCES_DIR / "tanzil-uthmani" / "1.1" / "quran-uthmani.xml"
 TANZIL_TXT = SOURCES_DIR / "tanzil-uthmani" / "1.1" / "quran-uthmani.txt"
 QURAN_META_HAFS = SOURCES_DIR / "quran-meta" / "repo" / "src" / "lists" / "HafsLists.ts"
 QURAN_META_NAMES_EN = SOURCES_DIR / "quran-meta" / "repo" / "src" / "i18n" / "surah.en.ts"
+QCF4_PAGES_DIR = SOURCES_DIR / "qcf4" / "repo" / "pages"
 
 MANIFEST_PATH = OUTPUT_DIR / "manifest.json"
 
@@ -924,6 +925,555 @@ def stage_cross_source_diff(manifest: dict) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Stage: parse_qcf4_layout  (ADR-0026)
+# ---------------------------------------------------------------------------
+
+def stage_parse_qcf4_layout(manifest: dict) -> None:
+    """Read the 604 vendored QCF4 JSON files and emit a structural layout artifact.
+
+    We consume ONLY structural fields per ADR-0026. QCF4's own `text`/`char`/`code`
+    are deliberately dropped — Tanzil is the sole authoritative Quran text source.
+    Words with text == '#1969' are the QCF4 sajda-decoration placeholder and are
+    dropped here (Tanzil records sajdas in the sajda table).
+    """
+    print("[parse_qcf4_layout] scanning", QCF4_PAGES_DIR.relative_to(DATA_DIR), flush=True)
+    if not QCF4_PAGES_DIR.is_dir():
+        raise RuntimeError(
+            f"QCF4 pages dir not found at {QCF4_PAGES_DIR}. "
+            "Vendor the repo per ADR-0026 before running this stage."
+        )
+
+    files = sorted(QCF4_PAGES_DIR.glob("*.json"))
+    if len(files) != 604:
+        raise RuntimeError(f"expected 604 QCF4 page files, found {len(files)}")
+
+    pages_out: list[dict] = []
+    dropped_placeholders = 0
+    for fp in files:
+        pj = json.loads(fp.read_bytes())
+        page_num = int(pj["page"])
+        lines_out: list[dict] = []
+        for line in pj.get("lines", []):
+            line_idx = int(line["line"])
+            raw_words = line.get("words", [])
+            # QCF4 encodes line kind on each word's `type`: surah_header | basmalah | word | end.
+            word_types = {w.get("type", "") for w in raw_words}
+
+            surah_num = None
+            if "surah_header" in word_types:
+                line_type = "surah_name"
+                is_centered = 1
+                # Some pages carry an explicit `sura` field on the header word.
+                for w in raw_words:
+                    if w.get("type") == "surah_header" and "sura" in w:
+                        surah_num = int(w["sura"])
+                        break
+            elif "basmalah" in word_types or "basmala" in word_types:
+                line_type = "basmalah"
+                is_centered = 1
+            elif "word" in word_types:
+                line_type = "ayah"
+                is_centered = 0
+            else:
+                # Rare: a line with only 'end' entries (unlikely in QCF4). Skip content but
+                # still record it so the 604x{8,15} structural expectation holds.
+                line_type = "ayah"
+                is_centered = 0
+
+            words_out: list[dict] = []
+            for w in raw_words:
+                wtype = w.get("type", "")
+                if wtype != "word":
+                    # Drop sajda placeholder or non-word entries (surah_header/end/basmalah).
+                    if w.get("text") == "#1969":
+                        dropped_placeholders += 1
+                    continue
+                if w.get("text") == "#1969":
+                    dropped_placeholders += 1
+                    continue
+                vk = w.get("verse_key", "")
+                pos = w.get("position")
+                if not vk or pos is None:
+                    continue
+                parts = vk.split(":")
+                if len(parts) != 2:
+                    raise RuntimeError(f"malformed QCF4 verse_key {vk!r} on page {page_num}")
+                s, a = int(parts[0]), int(parts[1])
+                words_out.append({"surah": s, "ayah": a, "position_qcf4": int(pos)})
+
+            lines_out.append({
+                "line_index": line_idx,
+                "line_type": line_type,
+                "is_centered": is_centered,
+                "surah_number": surah_num,
+                "words": words_out,
+            })
+
+        # Fatiha and Al-Baqarah opening pages have 8 lines; every other page has 15.
+        if page_num in (1, 2):
+            if len(lines_out) != 8:
+                raise RuntimeError(f"page {page_num} has {len(lines_out)} lines, expected 8")
+        else:
+            if len(lines_out) != 15:
+                raise RuntimeError(f"page {page_num} has {len(lines_out)} lines, expected 15")
+
+        pages_out.append({"page": page_num, "lines": lines_out})
+
+    if dropped_placeholders != 15:
+        raise RuntimeError(
+            f"expected exactly 15 QCF4 '#1969' sajda placeholder drops, saw {dropped_placeholders}"
+        )
+
+    total_lines = sum(len(p["lines"]) for p in pages_out)
+    total_words = sum(len(l["words"]) for p in pages_out for l in p["lines"])
+    if total_lines != 9046:
+        raise RuntimeError(f"expected 9046 total lines, got {total_lines}")
+    if total_words != 77433:
+        raise RuntimeError(
+            f"expected 77433 total QCF4 word entries after dropping placeholders, got {total_words}"
+        )
+
+    out = INTERMEDIATE_DIR / "qcf4-layout.json"
+    sha = write_json_deterministic(out, pages_out)
+    print(
+        f"[parse_qcf4_layout] OK  pages=604 lines={total_lines} words={total_words} "
+        f"placeholders_dropped={dropped_placeholders}",
+        flush=True,
+    )
+    # Track a couple of representative file hashes as inputs — hashing 604 files
+    # into the manifest each run would bloat it; the SOURCE.json is the canonical index.
+    record_stage(manifest, "parse_qcf4_layout",
+        inputs={
+            "qcf4_source_json": SOURCES_DIR / "qcf4" / "SOURCE.json",
+            "qcf4_page_001": QCF4_PAGES_DIR / "001.json",
+            "qcf4_page_604": QCF4_PAGES_DIR / "604.json",
+        },
+        outputs={"qcf4_layout": (str(out.relative_to(DATA_DIR)), sha)},
+    )
+
+
+# ---------------------------------------------------------------------------
+# Stage: reconcile_layout  (ADR-0026)
+# ---------------------------------------------------------------------------
+
+# Quranic mark range U+06D6..U+06ED (waqf + small letters)
+_QCF4_WAQF_RANGE = set(chr(c) for c in range(0x06D6, 0x06EE))
+_QCF4_ZW = {"‌", "‍"}
+_RUB_MARK = "۞"  # ۞
+
+
+def _is_waqf_only_token(tok: str) -> bool:
+    stripped = "".join(c for c in tok if c not in _QCF4_ZW)
+    if not stripped:
+        return False
+    return all(c in _QCF4_WAQF_RANGE for c in stripped)
+
+
+def _is_rub_only_token(tok: str) -> bool:
+    stripped = "".join(c for c in tok if c not in _QCF4_ZW)
+    return stripped == _RUB_MARK
+
+
+def stage_reconcile_layout(manifest: dict) -> None:
+    """Align Tanzil tokens against QCF4 line/word structure.
+
+    Emits:
+      page-lines.json  — canonical list of (page, line_index, line_type, is_centered, surah_number).
+      page-words.json  — for every Tanzil token, its (page, line_index, word_index_in_line,
+                         surah, ayah, position_in_ayah, tanzil_token, token_kind).
+      ayah-page-overrides.json — list of (surah, ayah, old_page, new_page) for ayahs where
+                         QCF4 assigns a different page than quran-meta.
+      reconcile-report.json — measured metrics for the validate_layout gate.
+
+    Rules (per ADR-0026):
+      1. Sequential per-ayah alignment of Tanzil non-waqf tokens to QCF4 word entries.
+      2. Backward-attach: standalone Tanzil waqf token (U+06D6..U+06ED excl. U+06DE) →
+         same (page, line) as previous non-waqf token in the ayah.
+      3. Forward-attach: ۞ Rub el-Hizb (U+06DE) → same (page, line) as next non-waqf
+         token in the ayah.
+    """
+    print("[reconcile_layout] loading corpus + qcf4 layout", flush=True)
+    corpus = json.loads((INTERMEDIATE_DIR / "corpus.json").read_bytes())
+    qcf4 = json.loads((INTERMEDIATE_DIR / "qcf4-layout.json").read_bytes())
+
+    # Build QCF4 per-ayah word ordering in reading order.
+    qcf4_by_ayah: dict[tuple[int, int], list[dict]] = {}
+    for p in qcf4:
+        page = p["page"]
+        for line in p["lines"]:
+            for w in line["words"]:
+                key = (w["surah"], w["ayah"])
+                qcf4_by_ayah.setdefault(key, []).append({
+                    "page": page,
+                    "line_index": line["line_index"],
+                    "position_qcf4": w["position_qcf4"],
+                })
+    for k in qcf4_by_ayah:
+        qcf4_by_ayah[k].sort(key=lambda e: (e["page"], e["line_index"], e["position_qcf4"]))
+
+    # Emit page_lines with a stable ordering.
+    page_lines: list[dict] = []
+    for p in qcf4:
+        for line in p["lines"]:
+            page_lines.append({
+                "page": p["page"],
+                "line_index": line["line_index"],
+                "line_type": line["line_type"],
+                "is_centered": line["is_centered"],
+                "surah_number": line["surah_number"],
+            })
+
+    # Walk Tanzil ayahs, produce page_words with all three rules applied.
+    corpus_by_key = {(c["surah"], c["ayah"]): c for c in corpus}
+    page_words_flat: list[dict] = []
+    ayah_new_page: dict[tuple[int, int], int] = {}
+
+    seq_mapped = waqf_mapped = rub_mapped = 0
+    unmapped_tanzil_nonwaqf = 0
+    unmapped_tanzil_waqf = 0
+    unmapped_tanzil_rub = 0
+
+    for c in corpus:
+        surah = c["surah"]
+        ayah = c["ayah"]
+        tokens = c["text_uthmani"].split()
+        q_entries = qcf4_by_ayah.get((surah, ayah), [])
+        j = 0
+        last_mapped: dict | None = None
+
+        # First pass: place non-waqf words + backward-attach waqf; defer rub markers.
+        emissions: list[dict | None] = [None] * len(tokens)
+        for i, tok in enumerate(tokens):
+            if _is_rub_only_token(tok):
+                emissions[i] = {"deferred_rub": True, "token": tok, "pos_in_ayah": i + 1}
+                continue
+            if _is_waqf_only_token(tok):
+                if last_mapped is not None:
+                    emissions[i] = {
+                        "page": last_mapped["page"],
+                        "line_index": last_mapped["line_index"],
+                        "surah": surah, "ayah": ayah,
+                        "position_in_ayah": i + 1,
+                        "tanzil_token": tok,
+                        "token_kind": "waqf",
+                    }
+                    waqf_mapped += 1
+                else:
+                    unmapped_tanzil_waqf += 1
+                continue
+            # Non-waqf: consume next QCF4 entry.
+            if j < len(q_entries):
+                q = q_entries[j]
+                emissions[i] = {
+                    "page": q["page"],
+                    "line_index": q["line_index"],
+                    "surah": surah, "ayah": ayah,
+                    "position_in_ayah": i + 1,
+                    "tanzil_token": tok,
+                    "token_kind": "word",
+                }
+                last_mapped = {"page": q["page"], "line_index": q["line_index"]}
+                seq_mapped += 1
+                j += 1
+            else:
+                unmapped_tanzil_nonwaqf += 1
+
+        # Second pass: resolve deferred rub markers by forward-attach.
+        for i, em in enumerate(emissions):
+            if em is None or "deferred_rub" not in em:
+                continue
+            nxt = None
+            for k in range(i + 1, len(emissions)):
+                if emissions[k] is not None and emissions[k].get("token_kind") == "word":
+                    nxt = emissions[k]
+                    break
+            if nxt is not None:
+                emissions[i] = {
+                    "page": nxt["page"],
+                    "line_index": nxt["line_index"],
+                    "surah": surah, "ayah": ayah,
+                    "position_in_ayah": em["pos_in_ayah"],
+                    "tanzil_token": em["token"],
+                    "token_kind": "rub",
+                }
+                rub_mapped += 1
+            else:
+                unmapped_tanzil_rub += 1
+                emissions[i] = None
+
+        # Determine authoritative page for this ayah = QCF4's page of the FIRST mapped word.
+        first_word = next((e for e in emissions if e is not None and e.get("token_kind") == "word"), None)
+        if first_word is None:
+            raise RuntimeError(f"ayah {surah}:{ayah} has no mapped 'word' after reconciliation")
+        ayah_new_page[(surah, ayah)] = first_word["page"]
+
+        # Push flat rows.
+        for e in emissions:
+            if e is None:
+                continue
+            page_words_flat.append(e)
+
+    # Sort and assign word_index_in_line per (page, line_index).
+    page_words_flat.sort(key=lambda e: (e["page"], e["line_index"], e["position_in_ayah"]))
+    # position_in_ayah within a single line is monotonic per ayah, and ayahs on a line
+    # are already in reading order because we assign by ayah, so a stable sort by
+    # (page, line, position_in_ayah) produces the correct word ordering.
+    # But when a line contains words from ayah A (positions 5..8) followed by ayah B
+    # (positions 1..3), sorting by position_in_ayah would interleave. Instead sort
+    # by (page, line, ayah_order_on_line, position_in_ayah). We derive ayah_order_on_line
+    # from the first appearance of each ayah on the line.
+    from collections import defaultdict as _dd
+    by_line = _dd(list)
+    for e in page_words_flat:
+        by_line[(e["page"], e["line_index"])].append(e)
+    page_words: list[dict] = []
+    for (pg, ln), items in sorted(by_line.items()):
+        # Preserve original order-of-arrival for words within same line: they were emitted
+        # in Tanzil ayah order, per-ayah in position_in_ayah order. That IS the reading order.
+        # But sorted() above lost that; rebuild by grouping ayahs in first-seen order.
+        # Simpler: re-derive from qcf4 directly for this line.
+        # NB: emissions preserved reading order per ayah. Ayahs on a line are consecutive
+        # in the underlying loop over corpus (which iterates ayahs sequentially). So the
+        # emission list of this line before we sorted was correct.
+        pass
+
+    # Redo without breaking per-line ordering: don't sort globally; instead rebuild
+    # by iterating corpus and grouping to (page, line) as we go.
+    page_words_flat = []
+    ayah_first_seen_on_line: dict[tuple[int, int, int, int], int] = {}
+    for c in corpus:
+        surah = c["surah"]; ayah = c["ayah"]
+        tokens = c["text_uthmani"].split()
+        q_entries = qcf4_by_ayah.get((surah, ayah), [])
+        j = 0
+        last_mapped = None
+        emissions: list[dict | None] = [None] * len(tokens)
+        for i, tok in enumerate(tokens):
+            if _is_rub_only_token(tok):
+                emissions[i] = {"deferred_rub": True, "token": tok, "pos_in_ayah": i + 1}
+                continue
+            if _is_waqf_only_token(tok):
+                if last_mapped is not None:
+                    emissions[i] = {
+                        "page": last_mapped["page"], "line_index": last_mapped["line_index"],
+                        "surah": surah, "ayah": ayah, "position_in_ayah": i + 1,
+                        "tanzil_token": tok, "token_kind": "waqf",
+                    }
+                continue
+            if j < len(q_entries):
+                q = q_entries[j]
+                emissions[i] = {
+                    "page": q["page"], "line_index": q["line_index"],
+                    "surah": surah, "ayah": ayah, "position_in_ayah": i + 1,
+                    "tanzil_token": tok, "token_kind": "word",
+                }
+                last_mapped = {"page": q["page"], "line_index": q["line_index"]}
+                j += 1
+        # Resolve deferred rubs.
+        for i, em in enumerate(emissions):
+            if em is None or not em.get("deferred_rub"):
+                continue
+            nxt = next((e for e in emissions[i + 1:] if e is not None and e.get("token_kind") == "word"), None)
+            if nxt is not None:
+                emissions[i] = {
+                    "page": nxt["page"], "line_index": nxt["line_index"],
+                    "surah": surah, "ayah": ayah, "position_in_ayah": em["pos_in_ayah"],
+                    "tanzil_token": em["token"], "token_kind": "rub",
+                }
+            else:
+                emissions[i] = None
+        for e in emissions:
+            if e is not None:
+                page_words_flat.append(e)
+
+    # Assign word_index_in_line preserving the reading order we produced.
+    word_index_counter: dict[tuple[int, int], int] = {}
+    for e in page_words_flat:
+        key = (e["page"], e["line_index"])
+        word_index_counter[key] = word_index_counter.get(key, 0) + 1
+        e["word_index_in_line"] = word_index_counter[key]
+
+    # Build override list: ayahs whose new page differs from corpus page.
+    overrides: list[dict] = []
+    for c in corpus:
+        key = (c["surah"], c["ayah"])
+        new_page = ayah_new_page[key]
+        if new_page != c["page"]:
+            overrides.append({
+                "surah": c["surah"], "ayah": c["ayah"],
+                "old_page": c["page"], "new_page": new_page,
+            })
+
+    # Content integrity check: GROUP_CONCAT(tanzil_token) per ayah must equal
+    # corpus text_uthmani.split() joined by spaces.
+    per_ayah_tokens: dict[tuple[int, int], list[str]] = {}
+    for e in page_words_flat:
+        per_ayah_tokens.setdefault((e["surah"], e["ayah"]), []).append(
+            (e["position_in_ayah"], e["tanzil_token"])
+        )
+    integrity_failures = []
+    for c in corpus:
+        key = (c["surah"], c["ayah"])
+        assembled = per_ayah_tokens.get(key, [])
+        assembled.sort(key=lambda x: x[0])
+        got = " ".join(t for _, t in assembled)
+        expected = " ".join(c["text_uthmani"].split())
+        if got != expected:
+            integrity_failures.append({
+                "surah": c["surah"], "ayah": c["ayah"],
+                "expected_len": len(expected), "got_len": len(got),
+            })
+    if integrity_failures:
+        raise RuntimeError(
+            f"[reconcile_layout] text-integrity check failed for {len(integrity_failures)} ayahs; "
+            f"first: {integrity_failures[0]}"
+        )
+
+    out_lines = INTERMEDIATE_DIR / "page-lines.json"
+    out_words = INTERMEDIATE_DIR / "page-words.json"
+    out_ovr = INTERMEDIATE_DIR / "ayah-page-overrides.json"
+    out_rep = INTERMEDIATE_DIR / "reconcile-report.json"
+    sha_lines = write_json_deterministic(out_lines, page_lines)
+    sha_words = write_json_deterministic(out_words, page_words_flat)
+    sha_ovr = write_json_deterministic(out_ovr, overrides)
+
+    report = {
+        "totals": {
+            "pages": 604,
+            "page_lines": len(page_lines),
+            "page_words": len(page_words_flat),
+            "seq_mapped": sum(1 for e in page_words_flat if e["token_kind"] == "word"),
+            "waqf_mapped": sum(1 for e in page_words_flat if e["token_kind"] == "waqf"),
+            "rub_mapped": sum(1 for e in page_words_flat if e["token_kind"] == "rub"),
+            "ayah_page_overrides": len(overrides),
+        },
+        "invariants": {
+            "text_integrity_ayahs_ok": len(corpus) - len(integrity_failures),
+            "text_integrity_failures": len(integrity_failures),
+        },
+    }
+    sha_rep = write_json_deterministic(out_rep, report)
+
+    print(
+        f"[reconcile_layout] OK  seq={report['totals']['seq_mapped']} waqf={report['totals']['waqf_mapped']} "
+        f"rub={report['totals']['rub_mapped']} overrides={len(overrides)}",
+        flush=True,
+    )
+    record_stage(manifest, "reconcile_layout",
+        inputs={
+            "corpus": INTERMEDIATE_DIR / "corpus.json",
+            "qcf4_layout": INTERMEDIATE_DIR / "qcf4-layout.json",
+        },
+        outputs={
+            "page_lines": (str(out_lines.relative_to(DATA_DIR)), sha_lines),
+            "page_words": (str(out_words.relative_to(DATA_DIR)), sha_words),
+            "ayah_page_overrides": (str(out_ovr.relative_to(DATA_DIR)), sha_ovr),
+            "reconcile_report": (str(out_rep.relative_to(DATA_DIR)), sha_rep),
+        },
+    )
+
+
+# ---------------------------------------------------------------------------
+# Stage: validate_layout  (ADR-0026)
+# ---------------------------------------------------------------------------
+
+def stage_validate_layout(manifest: dict) -> None:
+    """Fail fast if any layout invariant is violated. Runs before package_sqlite."""
+    print("[validate_layout] loading intermediates", flush=True)
+    corpus = json.loads((INTERMEDIATE_DIR / "corpus.json").read_bytes())
+    page_lines = json.loads((INTERMEDIATE_DIR / "page-lines.json").read_bytes())
+    page_words = json.loads((INTERMEDIATE_DIR / "page-words.json").read_bytes())
+
+    failures: list[str] = []
+
+    def check(cond: bool, msg: str) -> None:
+        if not cond:
+            failures.append(msg)
+
+    pages = sorted({pl["page"] for pl in page_lines})
+    check(pages == list(range(1, 605)), f"pages set is not 1..604 (got {len(pages)} distinct)")
+
+    # Every ayah must have at least one 'word' emission.
+    ayahs_with_word: set[tuple[int, int]] = set()
+    for e in page_words:
+        if e["token_kind"] == "word":
+            ayahs_with_word.add((e["surah"], e["ayah"]))
+    for c in corpus:
+        check((c["surah"], c["ayah"]) in ayahs_with_word,
+              f"ayah {c['surah']}:{c['ayah']} has no 'word' emission")
+
+    # Token-kind counts.
+    kind_counts = {"word": 0, "waqf": 0, "rub": 0}
+    for e in page_words:
+        kind_counts[e["token_kind"]] = kind_counts.get(e["token_kind"], 0) + 1
+    check(kind_counts["word"] == 77433,
+          f"word token count = {kind_counts['word']}, expected 77433")
+
+    # Deterministic ordering: (page, line_index, word_index_in_line) uniqueness.
+    keys = set()
+    for e in page_words:
+        k = (e["page"], e["line_index"], e["word_index_in_line"])
+        check(k not in keys, f"duplicate (page,line,word_index_in_line)={k}")
+        keys.add(k)
+
+    # (surah, ayah, position_in_ayah) uniqueness.
+    ayah_pos: set[tuple[int, int, int]] = set()
+    for e in page_words:
+        k = (e["surah"], e["ayah"], e["position_in_ayah"])
+        check(k not in ayah_pos, f"duplicate (surah,ayah,position_in_ayah)={k}")
+        ayah_pos.add(k)
+
+    # Text integrity: GROUP_CONCAT per ayah == corpus text_uthmani (space-joined tokens).
+    from collections import defaultdict as _dd
+    per_ayah_tokens = _dd(list)
+    for e in page_words:
+        per_ayah_tokens[(e["surah"], e["ayah"])].append((e["position_in_ayah"], e["tanzil_token"]))
+    for c in corpus:
+        toks = sorted(per_ayah_tokens[(c["surah"], c["ayah"])], key=lambda x: x[0])
+        got = " ".join(t for _, t in toks)
+        exp = " ".join(c["text_uthmani"].split())
+        check(got == exp, f"ayah {c['surah']}:{c['ayah']} tanzil-token reassembly != text_uthmani")
+
+    # page_lines uniqueness and coverage.
+    pl_keys = set()
+    for pl in page_lines:
+        k = (pl["page"], pl["line_index"])
+        check(k not in pl_keys, f"duplicate page_line key {k}")
+        pl_keys.add(k)
+    # Every page_words row must reference an existing page_line.
+    for e in page_words:
+        check((e["page"], e["line_index"]) in pl_keys,
+              f"page_words references missing page_line {(e['page'], e['line_index'])}")
+
+    out = INTERMEDIATE_DIR / "validate-layout.json"
+    report = {
+        "passed": len(failures) == 0,
+        "failures": failures[:50],
+        "totals": {
+            "pages": len(pages),
+            "page_lines": len(page_lines),
+            "page_words": len(page_words),
+            "word_tokens": kind_counts["word"],
+            "waqf_tokens": kind_counts["waqf"],
+            "rub_tokens": kind_counts["rub"],
+        },
+    }
+    sha = write_json_deterministic(out, report)
+    record_stage(manifest, "validate_layout",
+        inputs={
+            "page_lines": INTERMEDIATE_DIR / "page-lines.json",
+            "page_words": INTERMEDIATE_DIR / "page-words.json",
+            "corpus": INTERMEDIATE_DIR / "corpus.json",
+        },
+        outputs={"validate_layout_report": (str(out.relative_to(DATA_DIR)), sha)},
+    )
+    print(f"[validate_layout] {'PASS' if report['passed'] else 'FAIL'}  "
+          f"totals={report['totals']}", flush=True)
+    if failures:
+        raise RuntimeError(f"[validate_layout] {len(failures)} failure(s); first: {failures[0]}")
+
+
+# ---------------------------------------------------------------------------
 # Stage: package_sqlite  (TASK-022)
 # ---------------------------------------------------------------------------
 
@@ -1012,21 +1562,97 @@ CREATE TABLE sajda (
     ayah_in_surah       INTEGER NOT NULL
 );
 
+CREATE TABLE page_lines (
+    page          INTEGER NOT NULL,
+    line_index    INTEGER NOT NULL,
+    line_type     TEXT NOT NULL CHECK(line_type IN ('ayah','surah_name','basmalah')),
+    is_centered   INTEGER NOT NULL CHECK(is_centered IN (0,1)),
+    surah_number  INTEGER,
+    PRIMARY KEY(page, line_index)
+);
+
+CREATE TABLE page_words (
+    page                 INTEGER NOT NULL,
+    line_index           INTEGER NOT NULL,
+    word_index_in_line   INTEGER NOT NULL,
+    surah                INTEGER NOT NULL,
+    ayah                 INTEGER NOT NULL,
+    position_in_ayah     INTEGER NOT NULL,
+    tanzil_token         TEXT NOT NULL,
+    token_kind           TEXT NOT NULL CHECK(token_kind IN ('word','waqf','rub')),
+    PRIMARY KEY(page, line_index, word_index_in_line),
+    UNIQUE(surah, ayah, position_in_ayah)
+);
+
 CREATE INDEX idx_ayahs_surah_ayah ON ayahs(surah, ayah);
 CREATE INDEX idx_ayahs_page       ON ayahs(page);
 CREATE INDEX idx_ayahs_juz        ON ayahs(juz);
 CREATE INDEX idx_ayahs_hizb       ON ayahs(hizb);
 CREATE INDEX idx_ayahs_rub        ON ayahs(rub);
+CREATE INDEX idx_page_words_saa   ON page_words(surah, ayah, position_in_ayah);
 """
 
 
 def stage_package_sqlite(manifest: dict) -> None:
-    """Build the read-only quran.db from corpus.json + indices.json."""
+    """Build the read-only quran.db from corpus.json + indices.json + layout data.
+
+    Applies the ayah->page overrides from reconcile_layout (ADR-0026 Option A) so
+    ayahs.page reflects the QCF4 1441H authoritative page assignment. Text remains
+    byte-identical from Tanzil.
+    """
     import sqlite3
 
     print("[package_sqlite] loading intermediates", flush=True)
     corpus = json.loads((INTERMEDIATE_DIR / "corpus.json").read_bytes())
     indices = json.loads((INTERMEDIATE_DIR / "indices.json").read_bytes())
+    page_lines = json.loads((INTERMEDIATE_DIR / "page-lines.json").read_bytes())
+    page_words = json.loads((INTERMEDIATE_DIR / "page-words.json").read_bytes())
+    overrides = json.loads((INTERMEDIATE_DIR / "ayah-page-overrides.json").read_bytes())
+
+    # Apply page overrides in-memory (does NOT touch text_uthmani).
+    override_map = {(o["surah"], o["ayah"]): o["new_page"] for o in overrides}
+    text_hash_before = hashlib.sha256(
+        "\n".join(c["text_uthmani"] for c in corpus).encode("utf-8")
+    ).hexdigest()
+    for c in corpus:
+        key = (c["surah"], c["ayah"])
+        if key in override_map:
+            c["page"] = override_map[key]
+    text_hash_after = hashlib.sha256(
+        "\n".join(c["text_uthmani"] for c in corpus).encode("utf-8")
+    ).hexdigest()
+    if text_hash_before != text_hash_after:
+        raise RuntimeError("[package_sqlite] page override silently mutated text_uthmani")
+
+    # Recompute the pages index (first/last global index, surahs_on_page, juz_starts_on_page)
+    # from the (possibly overridden) corpus so the pages table stays consistent with ayahs.
+    by_page: dict[int, list[dict]] = {}
+    for c in corpus:
+        by_page.setdefault(c["page"], []).append(c)
+    juz_start_gids = {
+        j["first_ayah_global_index"]: j["number"] for j in indices["juz"]
+    }
+    new_pages: list[dict] = []
+    for pn in range(1, 605):
+        rows = sorted(by_page.get(pn, []), key=lambda x: x["global_index"])
+        if not rows:
+            raise RuntimeError(f"page {pn} has no ayahs after overrides")
+        seen: set[int] = set()
+        surahs_on_page: list[int] = []
+        for r in rows:
+            if r["surah"] not in seen:
+                surahs_on_page.append(r["surah"])
+                seen.add(r["surah"])
+        juz_starts = [juz_start_gids[r["global_index"]]
+                      for r in rows if r["global_index"] in juz_start_gids]
+        new_pages.append({
+            "number": pn,
+            "first_ayah_global_index": rows[0]["global_index"],
+            "last_ayah_global_index": rows[-1]["global_index"],
+            "surahs_on_page": surahs_on_page,
+            "juz_starts_on_page": juz_starts,
+        })
+    indices["pages"] = new_pages
 
     if QURAN_DB.exists():
         QURAN_DB.unlink()
@@ -1093,6 +1719,20 @@ def stage_package_sqlite(manifest: dict) -> None:
             [(s["number"], s["ayah_global_index"], s["surah"], s["ayah_in_surah"]) for s in indices["sajda"]],
         )
 
+        cur.executemany(
+            "INSERT INTO page_lines(page, line_index, line_type, is_centered, surah_number) VALUES (?, ?, ?, ?, ?)",
+            [(pl["page"], pl["line_index"], pl["line_type"], pl["is_centered"], pl["surah_number"])
+             for pl in page_lines],
+        )
+
+        cur.executemany(
+            "INSERT INTO page_words(page, line_index, word_index_in_line, surah, ayah, "
+            "position_in_ayah, tanzil_token, token_kind) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            [(pw["page"], pw["line_index"], pw["word_index_in_line"], pw["surah"], pw["ayah"],
+              pw["position_in_ayah"], pw["tanzil_token"], pw["token_kind"])
+             for pw in page_words],
+        )
+
         conn.commit()
 
         # Row-count invariants
@@ -1106,12 +1746,35 @@ def stage_package_sqlite(manifest: dict) -> None:
             "manzil": cur.execute("SELECT COUNT(*) FROM manzil").fetchone()[0],
             "ruku": cur.execute("SELECT COUNT(*) FROM ruku").fetchone()[0],
             "sajda": cur.execute("SELECT COUNT(*) FROM sajda").fetchone()[0],
+            "page_lines": cur.execute("SELECT COUNT(*) FROM page_lines").fetchone()[0],
+            "page_words": cur.execute("SELECT COUNT(*) FROM page_words").fetchone()[0],
         }
         expected = {"surahs": 114, "ayahs": 6236, "pages": 604, "juz": 30, "hizb": 60,
-                    "rub": 240, "manzil": 7, "ruku": 556, "sajda": 15}
+                    "rub": 240, "manzil": 7, "ruku": 556, "sajda": 15,
+                    "page_lines": 9046, "page_words": 82011}
         for k, v in expected.items():
             if counts[k] != v:
                 raise RuntimeError(f"row-count mismatch for {k}: got {counts[k]}, expected {v}")
+
+        # Post-insert integrity: reassembling page_words per ayah must equal ayahs.text_uthmani.
+        cur.execute("""
+            SELECT a.surah, a.ayah, a.text_uthmani,
+                   (SELECT GROUP_CONCAT(pw.tanzil_token, ' ') FROM (
+                        SELECT tanzil_token FROM page_words
+                        WHERE surah=a.surah AND ayah=a.ayah
+                        ORDER BY position_in_ayah
+                   ) pw)
+            FROM ayahs a
+        """)
+        mismatched = 0
+        for surah, ayah, text_uth, assembled in cur.fetchall():
+            expected_join = " ".join(text_uth.split())
+            if assembled != expected_join:
+                mismatched += 1
+                if mismatched <= 5:
+                    print(f"  [MISMATCH] {surah}:{ayah}", flush=True)
+        if mismatched:
+            raise RuntimeError(f"[package_sqlite] {mismatched} ayah(s) failed page_words->text reassembly")
 
         # Compact & finalize
         conn.commit()
@@ -1281,7 +1944,7 @@ def stage_build_search_index(manifest: dict) -> None:
 # Stage: release  (TASK-024: Content Integrity Gate)
 # ---------------------------------------------------------------------------
 
-CONTENT_VERSION = "1.0.0"
+CONTENT_VERSION = "1.1.0"
 RELEASE_DIR = OUTPUT_DIR / "RELEASE"
 
 
@@ -1302,10 +1965,14 @@ def stage_release(manifest: dict) -> None:
     unicode_report = json.loads((INTERMEDIATE_DIR / "validate-unicode.json").read_bytes())
     xsource_report = json.loads((INTERMEDIATE_DIR / "cross-source-diff.json").read_bytes())
     search_report = json.loads((INTERMEDIATE_DIR / "search-index.json").read_bytes())
+    layout_report = json.loads((INTERMEDIATE_DIR / "validate-layout.json").read_bytes())
+    reconcile_report = json.loads((INTERMEDIATE_DIR / "reconcile-report.json").read_bytes())
+    overrides = json.loads((INTERMEDIATE_DIR / "ayah-page-overrides.json").read_bytes())
 
     tanzil_src = json.loads((SOURCES_DIR / "tanzil-uthmani" / "1.1" / "SOURCE.json").read_bytes())
     qmeta_src = json.loads((SOURCES_DIR / "quran-meta" / "SOURCE.json").read_bytes())
     qcom_src = json.loads((SOURCES_DIR / "quran-com" / "SOURCE.json").read_bytes())
+    qcf4_src = json.loads((SOURCES_DIR / "qcf4" / "SOURCE.json").read_bytes())
 
     md = [
         f"# CONTENT MANIFEST — Digital Mushaf Quran dataset v{CONTENT_VERSION}",
@@ -1351,6 +2018,28 @@ def stage_release(manifest: dict) -> None:
     ]
     for f, meta in qcom_src["files"].items():
         md.append(f"  - `{f}` — SHA-256 `{meta['sha256']}` ({meta['size_bytes']:,} B)")
+
+    md += [
+        "",
+        "### Mushaf line-layout — MohamadHajjRabee/quran-qcf4 (ADR-0026)",
+        f"- Git commit: `{qcf4_src['git_commit']}`",
+        f"- Commit date: {qcf4_src['commit_date']}",
+        f"- License (data): {qcf4_src['license_data']}",
+        f"- License (fonts): {qcf4_src['license_fonts']}",
+        f"- Fetched: {qcf4_src['fetched_on']}",
+        f"- Role: {qcf4_src['role']}",
+        f"- 604 per-page JSON files consumed; QCF4 fonts NOT redistributed.",
+        "",
+        "#### Layout reconciliation report",
+        "",
+        f"- Sequential word mappings: {reconcile_report['totals']['seq_mapped']}",
+        f"- Waqf-rule (backward-attach) mappings: {reconcile_report['totals']['waqf_mapped']}",
+        f"- Rub-marker (forward-attach) mappings: {reconcile_report['totals']['rub_mapped']}",
+        f"- Ayah page overrides applied (QCF4 1441H authoritative): {len(overrides)}",
+        f"- page_lines rows: {layout_report['totals']['page_lines']}",
+        f"- page_words rows: {layout_report['totals']['page_words']}",
+        f"- Layout validation: **{'PASS' if layout_report['passed'] else 'FAIL'}**",
+    ]
 
     md += [
         "",
@@ -1409,6 +2098,9 @@ STAGES = OrderedDict([
     ("validate_structural", stage_validate_structural),
     ("validate_unicode", stage_validate_unicode),
     ("cross_source_diff", stage_cross_source_diff),
+    ("parse_qcf4_layout", stage_parse_qcf4_layout),
+    ("reconcile_layout", stage_reconcile_layout),
+    ("validate_layout", stage_validate_layout),
     ("package_sqlite", stage_package_sqlite),
     ("build_search_index", stage_build_search_index),
     ("release", stage_release),

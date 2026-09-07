@@ -1,9 +1,9 @@
-# CONTENT MANIFEST — Digital Mushaf Quran dataset v1.0.0
+# CONTENT MANIFEST — Digital Mushaf Quran dataset v1.1.0
 
-- **Frozen at:** 2026-09-04T21:20:40Z
-- **Release DB:** `data/output/RELEASE/quran-1.0.0.db`
-- **SHA-256:** `0ba78b6ab99f57a5688adc572f35ccf0568716a48d4424378d73cfd91c0b093e`
-- **Size:** 3,260,416 bytes
+- **Frozen at:** 2026-09-07T05:02:28Z
+- **Release DB:** `data/output/RELEASE/quran-1.1.0.db`
+- **SHA-256:** `86e6be19da45d686146d4840b109b3ad0efb39525e366f080485589c4a2085cb`
+- **Size:** 10,379,264 bytes
 - **Schema:** v1.0.0 (see `docs/data-model.md`)
 
 ## Riwaya and pagination
@@ -40,6 +40,25 @@
 - Fetched: 2026-09-04T21:20:19Z
   - `v4/verses-uthmani.json` — SHA-256 `3754c592dd15d7047d5b4339737ad3171c5c1d431a8c3e4c1eee7781c135d58c` (1,654,246 B)
 
+### Mushaf line-layout — MohamadHajjRabee/quran-qcf4 (ADR-0026)
+- Git commit: `5130511027e769f0a8f4eeb7f00f46bde3788d60`
+- Commit date: 2026-08-11
+- License (data): MIT
+- License (fonts): KFC EULA — NOT redistributed
+- Fetched: 2026-09-06T00:00:00Z
+- Role: Layout metadata source (page/line/word structural mapping only). No text or font redistribution.
+- 604 per-page JSON files consumed; QCF4 fonts NOT redistributed.
+
+#### Layout reconciliation report
+
+- Sequential word mappings: 77433
+- Waqf-rule (backward-attach) mappings: 4379
+- Rub-marker (forward-attach) mappings: 199
+- Ayah page overrides applied (QCF4 1441H authoritative): 56
+- page_lines rows: 9046
+- page_words rows: 82011
+- Layout validation: **PASS**
+
 ## Invariants
 
 | Metric | Value |
@@ -70,6 +89,6 @@
 ## Change policy
 
 Any change to text or metadata bumps the content version and requires a full
-Phase 1 re-run. Git tag `content-v1.0.0` will be applied when
+Phase 1 re-run. Git tag `content-v1.1.0` will be applied when
 the repository is initialized.
 

@@ -13,7 +13,8 @@ object MushafColors {
     val PaperDark  = Color(0xFF141210)
     val InkLight   = Color(0xFF1E1E1E)
     val InkDark    = Color(0xFFEDE7D8)
-    val Accent     = Color(0xFF7A5A2E)   // Ayah numbers, headings, dividers
+    val Accent     = Color(0xFF7A5A2E)   // Ayah numbers, headings, dividers (light mode)
+    val AccentDark = Color(0xFFB89466)   // Same role for dark mode — brighter for legibility on PaperDark
     val Muted      = Color(0xFF8A8266)
     val ControlBg  = Color(0xFFEDE7D8)
     val ControlBgDark = Color(0xFF23201B)
@@ -32,7 +33,7 @@ private val LightScheme = lightColorScheme(
 )
 
 private val DarkScheme = darkColorScheme(
-    primary        = MushafColors.Accent,
+    primary        = MushafColors.AccentDark,
     onPrimary      = MushafColors.PaperDark,
     background     = MushafColors.PaperDark,
     onBackground   = MushafColors.InkDark,

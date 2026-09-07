@@ -1,17 +1,17 @@
 {
-  "last_run_utc": "2026-09-04T21:20:40Z",
+  "last_run_utc": "2026-09-07T05:02:28Z",
   "stages": {
     "build_search_index": {
       "inputs": {
         "quran_db_pre": {
           "path": "output\\intermediate\\quran.sql",
-          "sha256": "05e9f216186f812e14b97d4a55306b03659db5b644e958a82ceed78ddbbe8fa3"
+          "sha256": "ae25e86b473dd4d119db7208c34bd6289fde2594b3f5b392a095f23019b25ce7"
         }
       },
       "outputs": {
         "quran_db": {
           "path": "output\\quran.db",
-          "sha256": "0ba78b6ab99f57a5688adc572f35ccf0568716a48d4424378d73cfd91c0b093e"
+          "sha256": "86e6be19da45d686146d4840b109b3ad0efb39525e366f080485589c4a2085cb"
         },
         "search_report": {
           "path": "output\\intermediate\\search-index.json",
@@ -77,11 +77,11 @@
       "outputs": {
         "quran_db": {
           "path": "output\\quran.db",
-          "sha256": "c765be31c7e8503fc2efc815b71d12066cd2f812e01b4990964d2deec1e492c2"
+          "sha256": "6cada887bcf66184b79ba397b0f38677cabb45bf9f0f8b2493cdd979ade688d0"
         },
         "quran_sql_dump": {
           "path": "output\\intermediate\\quran.sql",
-          "sha256": "05e9f216186f812e14b97d4a55306b03659db5b644e958a82ceed78ddbbe8fa3"
+          "sha256": "ae25e86b473dd4d119db7208c34bd6289fde2594b3f5b392a095f23019b25ce7"
         }
       }
     },
@@ -103,6 +103,28 @@
         }
       }
     },
+    "parse_qcf4_layout": {
+      "inputs": {
+        "qcf4_page_001": {
+          "path": "sources\\qcf4\\repo\\pages\\001.json",
+          "sha256": "490d6b94c5e08a20e0353a957e2dd308de6de6574c164fa14a26435fa85a57f0"
+        },
+        "qcf4_page_604": {
+          "path": "sources\\qcf4\\repo\\pages\\604.json",
+          "sha256": "e83c0fec587874d234d15ab9dd8b0ab0a188bc14904c3c963970e5d5317e18da"
+        },
+        "qcf4_source_json": {
+          "path": "sources\\qcf4\\SOURCE.json",
+          "sha256": "544214face363261ab87b2265c63524abb09131ded6c242a0e6b9f586fef2370"
+        }
+      },
+      "outputs": {
+        "qcf4_layout": {
+          "path": "output\\intermediate\\qcf4-layout.json",
+          "sha256": "a60c87ae577ed84ede6911774e7b7129d7d4382777a7ec7a5425a831970a1e6c"
+        }
+      }
+    },
     "parse_tanzil": {
       "inputs": {
         "tanzil_xml": {
@@ -121,21 +143,73 @@
         }
       }
     },
+    "reconcile_layout": {
+      "inputs": {
+        "corpus": {
+          "path": "output\\intermediate\\corpus.json",
+          "sha256": "222284c89bc94563a1f7cb329bcf2f7f06e4dea6740e5e0b568790f7bc6ffb63"
+        },
+        "qcf4_layout": {
+          "path": "output\\intermediate\\qcf4-layout.json",
+          "sha256": "a60c87ae577ed84ede6911774e7b7129d7d4382777a7ec7a5425a831970a1e6c"
+        }
+      },
+      "outputs": {
+        "ayah_page_overrides": {
+          "path": "output\\intermediate\\ayah-page-overrides.json",
+          "sha256": "05b305bf2ded5752595ddc8f339ded2a081d35832dcc052ffb382f85b784e6d6"
+        },
+        "page_lines": {
+          "path": "output\\intermediate\\page-lines.json",
+          "sha256": "7023541197782041fc9033f95d8a47fcba52fb0295c112d1e98c8e09fa9c6f34"
+        },
+        "page_words": {
+          "path": "output\\intermediate\\page-words.json",
+          "sha256": "431d881b29b132a4295d3e655e044b7554d8f919de613bfbc02fe27cf28ca90c"
+        },
+        "reconcile_report": {
+          "path": "output\\intermediate\\reconcile-report.json",
+          "sha256": "5f36ac0d6276a42bc2fc1f664b101d75d17f2aa7a6b475af4d10fb61e2290ff7"
+        }
+      }
+    },
     "release": {
       "inputs": {
         "quran_db": {
           "path": "output\\quran.db",
-          "sha256": "0ba78b6ab99f57a5688adc572f35ccf0568716a48d4424378d73cfd91c0b093e"
+          "sha256": "86e6be19da45d686146d4840b109b3ad0efb39525e366f080485589c4a2085cb"
         }
       },
       "outputs": {
         "content_manifest_md": {
           "path": "output\\RELEASE\\CONTENT_MANIFEST.md",
-          "sha256": "da5e1915a8094d55a1272477ca3307e64b15660906e7d2a924496d36e754d205"
+          "sha256": "e4ff7f0c45c8bb2f0a5dedcae94417c484b77e30049e54ccf65aff7bb35b1177"
         },
         "release_db": {
-          "path": "output\\RELEASE\\quran-1.0.0.db",
-          "sha256": "0ba78b6ab99f57a5688adc572f35ccf0568716a48d4424378d73cfd91c0b093e"
+          "path": "output\\RELEASE\\quran-1.1.0.db",
+          "sha256": "86e6be19da45d686146d4840b109b3ad0efb39525e366f080485589c4a2085cb"
+        }
+      }
+    },
+    "validate_layout": {
+      "inputs": {
+        "corpus": {
+          "path": "output\\intermediate\\corpus.json",
+          "sha256": "222284c89bc94563a1f7cb329bcf2f7f06e4dea6740e5e0b568790f7bc6ffb63"
+        },
+        "page_lines": {
+          "path": "output\\intermediate\\page-lines.json",
+          "sha256": "7023541197782041fc9033f95d8a47fcba52fb0295c112d1e98c8e09fa9c6f34"
+        },
+        "page_words": {
+          "path": "output\\intermediate\\page-words.json",
+          "sha256": "431d881b29b132a4295d3e655e044b7554d8f919de613bfbc02fe27cf28ca90c"
+        }
+      },
+      "outputs": {
+        "validate_layout_report": {
+          "path": "output\\intermediate\\validate-layout.json",
+          "sha256": "a08796fedb7333c332fe2865c8c7296bac559fafc0b0e5524f4fbdce1a81e1c6"
         }
       }
     },

@@ -1,0 +1,15 @@
+{
+  "invariants": {
+    "text_integrity_ayahs_ok": 6236,
+    "text_integrity_failures": 0
+  },
+  "totals": {
+    "ayah_page_overrides": 56,
+    "page_lines": 9046,
+    "page_words": 82011,
+    "pages": 604,
+    "rub_mapped": 199,
+    "seq_mapped": 77433,
+    "waqf_mapped": 4379
+  }
+}

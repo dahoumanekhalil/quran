@@ -14,6 +14,11 @@ data class Page(
     val surahsOnPage: List<Int>,          // surah numbers, ordered
     val juzStartsOnPage: List<Int>,       // juz numbers whose first ayah is on this page
     val ayahs: List<PageAyah>,
+    /**
+     * Physical mushaf lines (QCF4 1441H layout, ADR-0026). Ordered by lineIndex.
+     * Empty for pages that predate the line-layout migration (v1.0.0 asset).
+     */
+    val lines: List<PageLine> = emptyList(),
 )
 
 /** Lightweight ayah row used by the Reader — no juz/rub metadata needed for rendering. */

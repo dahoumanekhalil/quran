@@ -3,10 +3,14 @@ package app.mushaf.core.database
 import app.mushaf.core.common.IoDispatcher
 import app.mushaf.core.domain.model.Ayah
 import app.mushaf.core.domain.model.Juz
+import app.mushaf.core.domain.model.LineType
 import app.mushaf.core.domain.model.Page
 import app.mushaf.core.domain.model.PageAyah
+import app.mushaf.core.domain.model.PageLine
+import app.mushaf.core.domain.model.PageWord
 import app.mushaf.core.domain.model.RevelationPlace
 import app.mushaf.core.domain.model.Surah
+import app.mushaf.core.domain.model.TokenKind
 import app.mushaf.core.domain.search.SearchHit
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
@@ -150,6 +154,7 @@ class QuranDao @Inject constructor(
                 )
             }
         }
+        val lines = loadPageLines(sqlite, pageNumber)
         Page(
             number = pageMeta.number,
             firstAyahGlobalIndex = pageMeta.firstGid,
@@ -157,7 +162,91 @@ class QuranDao @Inject constructor(
             surahsOnPage = pageMeta.surahsOnPage,
             juzStartsOnPage = pageMeta.juzStartsOnPage,
             ayahs = ayahs,
+            lines = lines,
         )
+    }
+
+    /**
+     * Load QCF4 line layout for the page (ADR-0026). Returns empty if the bundled
+     * asset predates the layout migration — callers should fall back to the
+     * ayah-flow renderer in that case.
+     */
+    private fun loadPageLines(sqlite: android.database.sqlite.SQLiteDatabase, pageNumber: Int): List<PageLine> {
+        val hasTable = sqlite.rawQuery(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='page_lines' LIMIT 1",
+            null,
+        ).use { it.moveToFirst() }
+        if (!hasTable) return emptyList()
+
+        // 1) line rows
+        data class LineRow(val idx: Int, val type: LineType, val centered: Boolean, val surahNumber: Int?)
+        val lineRows = ArrayList<LineRow>(15)
+        sqlite.rawQuery(
+            """
+            SELECT line_index, line_type, is_centered, surah_number
+            FROM page_lines
+            WHERE page = ?
+            ORDER BY line_index
+            """.trimIndent(),
+            arrayOf(pageNumber.toString()),
+        ).use { c ->
+            while (c.moveToNext()) {
+                val t = when (c.getString(1)) {
+                    "ayah" -> LineType.AYAH
+                    "surah_name" -> LineType.SURAH_NAME
+                    "basmalah" -> LineType.BASMALAH
+                    else -> LineType.AYAH
+                }
+                lineRows += LineRow(
+                    idx = c.getInt(0),
+                    type = t,
+                    centered = c.getInt(2) == 1,
+                    surahNumber = if (c.isNull(3)) null else c.getInt(3),
+                )
+            }
+        }
+        if (lineRows.isEmpty()) return emptyList()
+
+        // 2) word rows grouped by line
+        val wordsByLine = HashMap<Int, MutableList<PageWord>>(lineRows.size)
+        sqlite.rawQuery(
+            """
+            SELECT line_index, word_index_in_line, surah, ayah, position_in_ayah, tanzil_token, token_kind
+            FROM page_words
+            WHERE page = ?
+            ORDER BY line_index, word_index_in_line
+            """.trimIndent(),
+            arrayOf(pageNumber.toString()),
+        ).use { c ->
+            while (c.moveToNext()) {
+                val kind = when (c.getString(6)) {
+                    "word" -> TokenKind.WORD
+                    "waqf" -> TokenKind.WAQF
+                    "rub" -> TokenKind.RUB
+                    else -> TokenKind.WORD
+                }
+                val li = c.getInt(0)
+                val list = wordsByLine.getOrPut(li) { ArrayList(10) }
+                list += PageWord(
+                    wordIndexInLine = c.getInt(1),
+                    surah = c.getInt(2),
+                    ayah = c.getInt(3),
+                    positionInAyah = c.getInt(4),
+                    tanzilToken = c.getString(5),
+                    kind = kind,
+                )
+            }
+        }
+
+        return lineRows.map { lr ->
+            PageLine(
+                lineIndex = lr.idx,
+                lineType = lr.type,
+                isCentered = lr.centered,
+                surahNumber = lr.surahNumber,
+                words = wordsByLine[lr.idx] ?: emptyList(),
+            )
+        }
     }
 
     suspend fun pageOfSurahStart(surahNumber: Int): Int = withContext(io) {

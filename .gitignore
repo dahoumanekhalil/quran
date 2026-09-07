@@ -39,3 +39,9 @@ key.properties
 signing.properties
 google-services.json
 *.env
+
+# --- PoC / scratch ---
+# Local PoC clones and one-off scratch scripts. Permanent validation artifacts
+# for ADR-0026 live under docs/validation/qcf4-adoption/ and ARE committed.
+.tmp_qul_poc/
+tmp_*.py

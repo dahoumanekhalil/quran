@@ -1,0 +1,469 @@
+{
+  "qcf4": {
+    "source": "MohamadHajjRabee/quran-qcf4",
+    "commit": "5130511027e769f0a8f4eeb7f00f46bde3788d60",
+    "commit_date": "2026-08-11",
+    "license_data": "MIT",
+    "license_fonts_not_shipped": "KFC EULA — not redistributed"
+  },
+  "tanzil": {
+    "content_version": "1.0.0",
+    "source": "Tanzil Uthmani v1.1 (frozen)"
+  },
+  "alignment_strategy": "sequential per ayah; waqf-only Tanzil tokens attach to preceding mapped word's line",
+  "totals": {
+    "pages_checked": 604,
+    "qcf4_total_lines": 9046,
+    "qcf4_total_word_entries": 77448,
+    "tanzil_total_tokens": 82011,
+    "tanzil_nonwaqf_tokens": 77433,
+    "tanzil_waqf_only_tokens": 4578,
+    "seq_mapped": 77433,
+    "waqf_rule_mapped": 4379,
+    "rub_rule_mapped": 199,
+    "unmapped_tanzil_nonwaqf": 0,
+    "unmapped_tanzil_waqf_after_rule": 0,
+    "unmapped_tanzil_rub": 0,
+    "unmapped_qcf4_real": 0,
+    "unmapped_qcf4_sajda_markers": 15,
+    "crossing_page": 305
+  },
+  "pages": {
+    "pages_with_count_diff": 15,
+    "pages_with_waqf_reconciliation": 587,
+    "pages_with_edition_diff": 0,
+    "pages_with_sajda_marker_only": 15,
+    "max_affected_words_on_a_single_page": 20,
+    "max_affected_words_page_number": 35
+  },
+  "waqf_edge_cases": {
+    "attached_to_preceding_same_ayah": 4379,
+    "waqf_at_ayah_start_no_preceding": 0,
+    "waqf_preceding_mapped_on_different_page": 4,
+    "waqf_preceding_mapped_but_next_word_on_next_line": 510,
+    "waqf_consecutive_streak_of_2_or_more": 1,
+    "waqf_at_end_of_ayah_no_next_qcf4_word": 2,
+    "waqf_at_end_of_ayah_no_next_tanzil_word": 17,
+    "rub_forward_attached": 199,
+    "rub_no_following_word": 0
+  },
+  "ayahs_with_nonwaqf_count_diff": 15,
+  "total_ayahs": 6236,
+  "samples": {
+    "unmapped_tanzil_nonwaqf_head": [],
+    "unmapped_tanzil_waqf_after_rule_head": [],
+    "unmapped_tanzil_rub_head": [],
+    "unmapped_qcf4_real_head": [],
+    "unmapped_qcf4_sajda_head": [
+      {
+        "surah": 7,
+        "ayah": 206,
+        "qcf4_position": 12,
+        "qcf4_page": 176,
+        "qcf4_line": 15,
+        "qcf4_text": "#1969"
+      },
+      {
+        "surah": 13,
+        "ayah": 15,
+        "qcf4_position": 12,
+        "qcf4_page": 251,
+        "qcf4_line": 4,
+        "qcf4_text": "#1969"
+      },
+      {
+        "surah": 16,
+        "ayah": 50,
+        "qcf4_position": 8,
+        "qcf4_page": 272,
+        "qcf4_line": 11,
+        "qcf4_text": "#1969"
+      },
+      {
+        "surah": 17,
+        "ayah": 109,
+        "qcf4_position": 6,
+        "qcf4_page": 293,
+        "qcf4_line": 6,
+        "qcf4_text": "#1969"
+      },
+      {
+        "surah": 19,
+        "ayah": 58,
+        "qcf4_position": 30,
+        "qcf4_page": 309,
+        "qcf4_line": 8,
+        "qcf4_text": "#1969"
+      },
+      {
+        "surah": 22,
+        "ayah": 18,
+        "qcf4_position": 38,
+        "qcf4_page": 334,
+        "qcf4_line": 8,
+        "qcf4_text": "#1969"
+      },
+      {
+        "surah": 22,
+        "ayah": 77,
+        "qcf4_position": 12,
+        "qcf4_page": 341,
+        "qcf4_line": 9,
+        "qcf4_text": "#1969"
+      },
+      {
+        "surah": 25,
+        "ayah": 60,
+        "qcf4_position": 14,
+        "qcf4_page": 365,
+        "qcf4_line": 7,
+        "qcf4_text": "#1969"
+      },
+      {
+        "surah": 27,
+        "ayah": 26,
+        "qcf4_position": 9,
+        "qcf4_page": 379,
+        "qcf4_line": 6,
+        "qcf4_text": "#1969"
+      },
+      {
+        "surah": 32,
+        "ayah": 15,
+        "qcf4_position": 16,
+        "qcf4_page": 416,
+        "qcf4_line": 8,
+        "qcf4_text": "#1969"
+      },
+      {
+        "surah": 38,
+        "ayah": 24,
+        "qcf4_position": 33,
+        "qcf4_page": 454,
+        "qcf4_line": 11,
+        "qcf4_text": "#1969"
+      },
+      {
+        "surah": 41,
+        "ayah": 38,
+        "qcf4_position": 13,
+        "qcf4_page": 480,
+        "qcf4_line": 15,
+        "qcf4_text": "#1969"
+      },
+      {
+        "surah": 53,
+        "ayah": 62,
+        "qcf4_position": 4,
+        "qcf4_page": 528,
+        "qcf4_line": 9,
+        "qcf4_text": "#1969"
+      },
+      {
+        "surah": 84,
+        "ayah": 21,
+        "qcf4_position": 7,
+        "qcf4_page": 589,
+        "qcf4_line": 14,
+        "qcf4_text": "#1969"
+      },
+      {
+        "surah": 96,
+        "ayah": 19,
+        "qcf4_position": 6,
+        "qcf4_page": 598,
+        "qcf4_line": 3,
+        "qcf4_text": "#1969"
+      }
+    ],
+    "crossing_page_head": [
+      {
+        "surah": 5,
+        "ayah": 77,
+        "position_in_ayah": 1,
+        "token": "قُلْ",
+        "tanzil_page": 121,
+        "qcf4_page": 120,
+        "qcf4_line": 13
+      },
+      {
+        "surah": 5,
+        "ayah": 77,
+        "position_in_ayah": 2,
+        "token": "يَـٰٓأَهْلَ",
+        "tanzil_page": 121,
+        "qcf4_page": 120,
+        "qcf4_line": 14
+      },
+      {
+        "surah": 5,
+        "ayah": 77,
+        "position_in_ayah": 3,
+        "token": "ٱلْكِتَـٰبِ",
+        "tanzil_page": 121,
+        "qcf4_page": 120,
+        "qcf4_line": 14
+      },
+      {
+        "surah": 5,
+        "ayah": 77,
+        "position_in_ayah": 4,
+        "token": "لَا",
+        "tanzil_page": 121,
+        "qcf4_page": 120,
+        "qcf4_line": 14
+      },
+      {
+        "surah": 5,
+        "ayah": 77,
+        "position_in_ayah": 5,
+        "token": "تَغْلُوا۟",
+        "tanzil_page": 121,
+        "qcf4_page": 120,
+        "qcf4_line": 14
+      },
+      {
+        "surah": 5,
+        "ayah": 77,
+        "position_in_ayah": 6,
+        "token": "فِى",
+        "tanzil_page": 121,
+        "qcf4_page": 120,
+        "qcf4_line": 14
+      },
+      {
+        "surah": 5,
+        "ayah": 77,
+        "position_in_ayah": 7,
+        "token": "دِينِكُمْ",
+        "tanzil_page": 121,
+        "qcf4_page": 120,
+        "qcf4_line": 14
+      },
+      {
+        "surah": 5,
+        "ayah": 77,
+        "position_in_ayah": 8,
+        "token": "غَيْرَ",
+        "tanzil_page": 121,
+        "qcf4_page": 120,
+        "qcf4_line": 14
+      },
+      {
+        "surah": 5,
+        "ayah": 77,
+        "position_in_ayah": 9,
+        "token": "ٱلْحَقِّ",
+        "tanzil_page": 121,
+        "qcf4_page": 120,
+        "qcf4_line": 14
+      },
+      {
+        "surah": 5,
+        "ayah": 77,
+        "position_in_ayah": 10,
+        "token": "وَلَا",
+        "tanzil_page": 121,
+        "qcf4_page": 120,
+        "qcf4_line": 14
+      },
+      {
+        "surah": 5,
+        "ayah": 77,
+        "position_in_ayah": 11,
+        "token": "تَتَّبِعُوٓا۟",
+        "tanzil_page": 121,
+        "qcf4_page": 120,
+        "qcf4_line": 14
+      },
+      {
+        "surah": 5,
+        "ayah": 77,
+        "position_in_ayah": 12,
+        "token": "أَهْوَآءَ",
+        "tanzil_page": 121,
+        "qcf4_page": 120,
+        "qcf4_line": 14
+      },
+      {
+        "surah": 5,
+        "ayah": 77,
+        "position_in_ayah": 13,
+        "token": "قَوْمٍ",
+        "tanzil_page": 121,
+        "qcf4_page": 120,
+        "qcf4_line": 15
+      },
+      {
+        "surah": 5,
+        "ayah": 77,
+        "position_in_ayah": 14,
+        "token": "قَدْ",
+        "tanzil_page": 121,
+        "qcf4_page": 120,
+        "qcf4_line": 15
+      },
+      {
+        "surah": 5,
+        "ayah": 77,
+        "position_in_ayah": 15,
+        "token": "ضَلُّوا۟",
+        "tanzil_page": 121,
+        "qcf4_page": 120,
+        "qcf4_line": 15
+      },
+      {
+        "surah": 5,
+        "ayah": 77,
+        "position_in_ayah": 16,
+        "token": "مِن",
+        "tanzil_page": 121,
+        "qcf4_page": 120,
+        "qcf4_line": 15
+      },
+      {
+        "surah": 5,
+        "ayah": 77,
+        "position_in_ayah": 17,
+        "token": "قَبْلُ",
+        "tanzil_page": 121,
+        "qcf4_page": 120,
+        "qcf4_line": 15
+      },
+      {
+        "surah": 5,
+        "ayah": 77,
+        "position_in_ayah": 18,
+        "token": "وَأَضَلُّوا۟",
+        "tanzil_page": 121,
+        "qcf4_page": 120,
+        "qcf4_line": 15
+      },
+      {
+        "surah": 5,
+        "ayah": 77,
+        "position_in_ayah": 19,
+        "token": "كَثِيرًا",
+        "tanzil_page": 121,
+        "qcf4_page": 120,
+        "qcf4_line": 15
+      },
+      {
+        "surah": 5,
+        "ayah": 77,
+        "position_in_ayah": 20,
+        "token": "وَضَلُّوا۟",
+        "tanzil_page": 121,
+        "qcf4_page": 120,
+        "qcf4_line": 15
+      }
+    ],
+    "per_ayah_deltas_head": [
+      {
+        "surah": 7,
+        "ayah": 206,
+        "tanzil_nonwaqf": 11,
+        "qcf4": 12,
+        "delta": -1
+      },
+      {
+        "surah": 13,
+        "ayah": 15,
+        "tanzil_nonwaqf": 11,
+        "qcf4": 12,
+        "delta": -1
+      },
+      {
+        "surah": 16,
+        "ayah": 50,
+        "tanzil_nonwaqf": 7,
+        "qcf4": 8,
+        "delta": -1
+      },
+      {
+        "surah": 17,
+        "ayah": 109,
+        "tanzil_nonwaqf": 5,
+        "qcf4": 6,
+        "delta": -1
+      },
+      {
+        "surah": 19,
+        "ayah": 58,
+        "tanzil_nonwaqf": 29,
+        "qcf4": 30,
+        "delta": -1
+      },
+      {
+        "surah": 22,
+        "ayah": 18,
+        "tanzil_nonwaqf": 37,
+        "qcf4": 38,
+        "delta": -1
+      },
+      {
+        "surah": 22,
+        "ayah": 77,
+        "tanzil_nonwaqf": 11,
+        "qcf4": 12,
+        "delta": -1
+      },
+      {
+        "surah": 25,
+        "ayah": 60,
+        "tanzil_nonwaqf": 13,
+        "qcf4": 14,
+        "delta": -1
+      },
+      {
+        "surah": 27,
+        "ayah": 26,
+        "tanzil_nonwaqf": 8,
+        "qcf4": 9,
+        "delta": -1
+      },
+      {
+        "surah": 32,
+        "ayah": 15,
+        "tanzil_nonwaqf": 15,
+        "qcf4": 16,
+        "delta": -1
+      },
+      {
+        "surah": 38,
+        "ayah": 24,
+        "tanzil_nonwaqf": 32,
+        "qcf4": 33,
+        "delta": -1
+      },
+      {
+        "surah": 41,
+        "ayah": 38,
+        "tanzil_nonwaqf": 12,
+        "qcf4": 13,
+        "delta": -1
+      },
+      {
+        "surah": 53,
+        "ayah": 62,
+        "tanzil_nonwaqf": 3,
+        "qcf4": 4,
+        "delta": -1
+      },
+      {
+        "surah": 84,
+        "ayah": 21,
+        "tanzil_nonwaqf": 6,
+        "qcf4": 7,
+        "delta": -1
+      },
+      {
+        "surah": 96,
+        "ayah": 19,
+        "tanzil_nonwaqf": 5,
+        "qcf4": 6,
+        "delta": -1
+      }
+    ]
+  }
+}

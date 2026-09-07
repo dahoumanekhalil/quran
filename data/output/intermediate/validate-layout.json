@@ -1,0 +1,12 @@
+{
+  "failures": [],
+  "passed": true,
+  "totals": {
+    "page_lines": 9046,
+    "page_words": 82011,
+    "pages": 604,
+    "rub_tokens": 199,
+    "waqf_tokens": 4379,
+    "word_tokens": 77433
+  }
+}

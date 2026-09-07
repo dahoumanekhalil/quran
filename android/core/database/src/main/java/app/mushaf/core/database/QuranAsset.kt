@@ -7,8 +7,8 @@ package app.mushaf.core.database
 object QuranAsset {
     const val ASSET_PATH = "quran/quran.db"        // in app/src/main/assets/
     const val INSTALL_FILENAME = "quran.db"        // in context.filesDir
-    const val CONTENT_VERSION = "1.0.0"
+    const val CONTENT_VERSION = "1.1.0"
     /** Full-file SHA-256, checked on first-launch copy. Bumped alongside the DB. */
     const val CONTENT_SHA256 =
-        "0ba78b6ab99f57a5688adc572f35ccf0568716a48d4424378d73cfd91c0b093e"
+        "86e6be19da45d686146d4840b109b3ad0efb39525e366f080485589c4a2085cb"
 }

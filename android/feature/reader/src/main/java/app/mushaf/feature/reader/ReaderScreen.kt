@@ -27,7 +27,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -79,9 +78,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.mushaf.core.designsystem.AmiriQuranFont
 import app.mushaf.core.designsystem.MushafArabicFont
 import app.mushaf.core.designsystem.MushafColors
+import app.mushaf.core.domain.model.LineType
 import app.mushaf.core.domain.model.MushafFont
 import app.mushaf.core.domain.model.Page
 import app.mushaf.core.domain.model.PageAyah
+import app.mushaf.core.domain.model.PageLine
+import app.mushaf.core.domain.model.TokenKind
 import kotlinx.coroutines.flow.distinctUntilChanged
 
 /** Route entry — Hilt-injected VM. */
@@ -228,8 +230,6 @@ fun ReaderContent(
                 exit = exitTransition,
             ) {
                 ReaderTopBar(
-                    surahNameAr = state.currentSurahNameAr,
-                    juzNumber = state.currentJuzNumber,
                     isBookmarked = state.isCurrentPageBookmarked,
                     onOpenNavigation = onOpenNavigation,
                     onOpenSearch = onOpenSearch,
@@ -260,16 +260,15 @@ fun ReaderContent(
 }
 
 /**
- * Restrained top bar — the "application layer" that sits above the Mushaf.
- * Contains: menu (left), quiet running-header context (center), bookmark + search (right).
+ * Bare-minimum application chrome. Contains only controls (menu, bookmark,
+ * search) — the Juz and Surah indicators have moved onto the Mushaf page
+ * itself, inside [MushafHeaderBand] (see ADR-0026 rev: Reader visual redesign).
  *
  * Applies its own status-bar inset padding so the underlying Column layout
  * doesn't need to know about system chrome.
  */
 @Composable
 private fun ReaderTopBar(
-    surahNameAr: String?,
-    juzNumber: Int?,
     isBookmarked: Boolean,
     onOpenNavigation: () -> Unit,
     onOpenSearch: () -> Unit,
@@ -286,25 +285,6 @@ private fun ReaderTopBar(
         ) {
             IconButton(onClick = onOpenNavigation) {
                 Icon(Icons.Filled.Menu, contentDescription = "Navigation")
-            }
-            Spacer(Modifier.weight(1f))
-            // Quiet running header — visually secondary, never a title.
-            if (!surahNameAr.isNullOrBlank()) {
-                Text(
-                    text = surahNameAr,
-                    fontFamily = MushafArabicFont,
-                    fontSize = 15.sp,
-                    color = MushafColors.Muted,
-                )
-                if (juzNumber != null) {
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        text = "· الجزء " + toArabicNumerals(juzNumber),
-                        fontFamily = MushafArabicFont,
-                        fontSize = 13.sp,
-                        color = MushafColors.Muted,
-                    )
-                }
             }
             Spacer(Modifier.weight(1f))
             IconButton(onClick = onToggleBookmark) {
@@ -351,15 +331,20 @@ private fun TapZone(
 }
 
 /**
- * A single Mushaf page — the "content layer". Bounded canvas with:
- *  - proportional side and top margins
- *  - a scrollable reading area that takes the vertical weight
- *  - a quiet page-number footer at the bottom
+ * A single Mushaf page — the "content layer". Delegates its structure to
+ * [MushafPageFrame] which owns the outer/inner border, header and footer
+ * bands, and separators. This composable is now responsible only for:
  *
- * The margins are the Mushaf's margins (like a printed page), independent
- * of whether the chrome above is visible. Bottom system-bar inset padding
- * is applied here so the page footer sits above the gesture area on gesture-
- * nav phones without the chrome needing to know.
+ *  - Loading the page's data (via `loadPage`)
+ *  - Choosing what content flows into each of the frame's slots
+ *  - Applying the bottom system-inset padding (so the frame footer sits
+ *    above the gesture-nav area on modern phones)
+ *
+ * Juz + Surah live in the frame's header slot (moved off the chrome).
+ * Page number lives in the frame's footer slot.
+ *
+ * Ornamentation of the frame itself is deliberately restrained pending
+ * reference-image calibration; see [MushafPageFrame] for the tunables.
  */
 @Composable
 private fun MushafPage(
@@ -388,36 +373,54 @@ private fun MushafPage(
         is PageLoadState.Loaded -> s.page
     }
 
-    Column(
+    // Derive header labels from the page itself so the frame is self-contained:
+    // no chrome/global state is required to fill its slots.
+    val primarySurah = current.surahsOnPage.firstOrNull()
+    val surahNameAr = primarySurah?.let { s -> current.ayahs.firstOrNull { it.surah == s }?.surahNameAr }
+    // Juz number for this page: prefer a juz that starts here, otherwise derive
+    // from the current-page juz. Since the domain model already tracks juz on
+    // ayahs elsewhere but not on `Page`, we approximate with the juz assigned
+    // to the page's first ayah (looked up via the DAO in a future refactor).
+    // Frame renders nothing when juzNumber is null.
+    val juzNumber: Int? = current.juzStartsOnPage.firstOrNull()
+
+    Box(
         Modifier
             .fillMaxSize()
-            .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Bottom))
-            .padding(horizontal = 28.dp)
-            .padding(top = 20.dp, bottom = 12.dp),
+            .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Bottom)),
     ) {
-        // Reading area — flexes to fill; scrolls only if content exceeds it.
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .verticalScroll(rememberScrollState()),
-        ) {
-            MushafPageContent(
-                page = current,
-                fontFamily = fontFamily,
-                fontSizeSp = fontSizeSp,
-                lineHeightMultiplier = lineHeightMultiplier,
-            )
-        }
-
-        MushafFooter(pageNumber = pageNumber)
+        MushafPageFrame(
+            modifier = Modifier.fillMaxSize(),
+            header = { MushafHeaderBand(surahNameAr = surahNameAr, juzNumber = juzNumber) },
+            footer = { MushafFooterBand(pageNumber = pageNumber) },
+            body = {
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState()),
+                ) {
+                    MushafPageContent(
+                        page = current,
+                        fontFamily = fontFamily,
+                        fontSizeSp = fontSizeSp,
+                        lineHeightMultiplier = lineHeightMultiplier,
+                    )
+                }
+            },
+        )
     }
 }
 
 /**
- * Segments a page's ayahs into blocks: a surah header (with optional Bismillah)
- * followed by that surah's ayahs. A page with two surahs on it produces two
- * header blocks separated by their respective ayah bodies.
+ * Renders a page.
+ *
+ * If the bundled asset carries the ADR-0026 QCF4 line layout (v1.1.0+), we
+ * render line-by-line — each physical mushaf line becomes exactly one Text
+ * composable so the printed line boundaries are preserved. Ayah markers are
+ * inserted inline immediately after the last token of each ayah.
+ *
+ * Fallback: for v1.0.0 assets that predate the migration, `page.lines` is
+ * empty and we fall back to the ayah-flow renderer.
  */
 @Composable
 private fun MushafPageContent(
@@ -426,6 +429,33 @@ private fun MushafPageContent(
     fontSizeSp: Float,
     lineHeightMultiplier: Float,
 ) {
+    if (page.lines.isNotEmpty()) {
+        val surahNames = remember(page) { page.ayahs.associate { it.surah to it.surahNameAr } }
+        Column(Modifier.fillMaxWidth()) {
+            for (line in page.lines) {
+                when (line.lineType) {
+                    LineType.SURAH_NAME -> SurahHeader(
+                        name = line.surahNumber?.let { surahNames[it] }
+                            ?: page.ayahs.firstOrNull { it.surahStartsHere }?.surahNameAr
+                            ?: "",
+                    )
+                    LineType.BASMALAH -> Bismillah(
+                        fontFamily = fontFamily,
+                        fontSize = fontSizeSp,
+                    )
+                    LineType.AYAH -> MushafLine(
+                        line = line,
+                        fontFamily = fontFamily,
+                        fontSizeSp = fontSizeSp,
+                        lineHeightMultiplier = lineHeightMultiplier,
+                    )
+                }
+            }
+        }
+        return
+    }
+
+    // Fallback: ayah-flow renderer for v1.0.0 assets.
     val blocks = remember(page) { buildMushafBlocks(page.ayahs) }
     Column(Modifier.fillMaxWidth()) {
         for (block in blocks) {
@@ -450,12 +480,58 @@ private fun MushafPageContent(
 }
 
 /**
+ * One physical mushaf line rendered as a single Text composable so the
+ * printed line boundaries are preserved (Charter #8, ADR-0026). Ayah markers
+ * are inlined at each ayah's last-token boundary via [appendAyahMarker].
+ */
+@Composable
+private fun MushafLine(
+    line: PageLine,
+    fontFamily: FontFamily,
+    fontSizeSp: Float,
+    lineHeightMultiplier: Float,
+) {
+    val accent = MaterialTheme.colorScheme.primary
+    val annotated = remember(line, fontSizeSp, accent) {
+        buildAnnotatedString {
+            val words = line.words
+            for (i in words.indices) {
+                val w = words[i]
+                append(w.tanzilToken)
+                val nextIsSameAyah = i + 1 < words.size &&
+                    words[i + 1].surah == w.surah &&
+                    words[i + 1].ayah == w.ayah
+                if (!nextIsSameAyah && w.kind == TokenKind.WORD) {
+                    appendAyahMarker(ayahNumber = w.ayah, accent = accent, fontSizeSp = fontSizeSp)
+                } else if (i + 1 < words.size) {
+                    append(' ')
+                }
+            }
+        }
+    }
+
+    val textAlign = if (line.isCentered) TextAlign.Center else TextAlign.Justify
+    Text(
+        text = annotated,
+        fontFamily = fontFamily,
+        fontSize = fontSizeSp.sp,
+        lineHeight = (fontSizeSp * lineHeightMultiplier).sp,
+        color = MaterialTheme.colorScheme.onBackground,
+        textAlign = textAlign,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clearAndSetSemantics { },
+    )
+}
+
+/**
  * Restrained mushaf-style surah header: centered name flanked by two thin
  * accent-color dividers at half width. No gilded frames, no illumination —
  * elegance via proportion.
  */
 @Composable
 private fun SurahHeader(name: String) {
+    val accent = MaterialTheme.colorScheme.primary
     Column(
         Modifier
             .fillMaxWidth()
@@ -463,7 +539,7 @@ private fun SurahHeader(name: String) {
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         HorizontalDivider(
-            color = MushafColors.Accent.copy(alpha = 0.25f),
+            color = accent.copy(alpha = 0.25f),
             thickness = 1.dp,
             modifier = Modifier.fillMaxWidth(0.5f),
         )
@@ -471,11 +547,11 @@ private fun SurahHeader(name: String) {
             text = name,
             fontFamily = MushafArabicFont,
             fontSize = 24.sp,
-            color = MushafColors.Accent,
+            color = accent,
             modifier = Modifier.padding(vertical = 8.dp),
         )
         HorizontalDivider(
-            color = MushafColors.Accent.copy(alpha = 0.25f),
+            color = accent.copy(alpha = 0.25f),
             thickness = 1.dp,
             modifier = Modifier.fillMaxWidth(0.5f),
         )
@@ -488,7 +564,7 @@ private fun Bismillah(fontFamily: FontFamily, fontSize: Float) {
         text = "بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ",
         fontFamily = fontFamily,
         fontSize = (fontSize * 0.95f).sp,
-        color = MushafColors.Accent,
+        color = MaterialTheme.colorScheme.primary,
         textAlign = TextAlign.Center,
         modifier = Modifier
             .fillMaxWidth()
@@ -509,14 +585,12 @@ private fun AyahBodyText(
     fontSizeSp: Float,
     lineHeightMultiplier: Float,
 ) {
-    val accent = MushafColors.Accent
-    val body = remember(ayahs, fontSizeSp) {
+    val accent = MaterialTheme.colorScheme.primary
+    val body = remember(ayahs, fontSizeSp, accent) {
         buildAnnotatedString {
             for (a in ayahs) {
                 append(a.textUthmani)
-                withStyle(SpanStyle(color = accent, fontSize = (fontSizeSp * 0.65f).sp)) {
-                    append(" ۝" + toArabicNumerals(a.ayah) + " ")
-                }
+                appendAyahMarker(ayahNumber = a.ayah, accent = accent, fontSizeSp = fontSizeSp)
             }
         }
     }
@@ -531,28 +605,6 @@ private fun AyahBodyText(
             .fillMaxWidth()
             .clearAndSetSemantics { },
     )
-}
-
-/**
- * Quiet page-number footer. Feels like part of the printed page rather than
- * application metadata: small, muted, Arabic numerals, centered.
- */
-@Composable
-private fun MushafFooter(pageNumber: Int) {
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .padding(top = 6.dp),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = toArabicNumerals(pageNumber),
-            fontFamily = MushafArabicFont,
-            fontSize = 14.sp,
-            color = MushafColors.Muted,
-        )
-    }
 }
 
 @Composable
@@ -630,6 +682,25 @@ private sealed interface PageLoadState {
 private fun toArabicNumerals(n: Int): String {
     val map = charArrayOf('٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩')
     return n.toString().map { ch -> map[ch.digitToInt()] }.joinToString("")
+}
+
+/**
+ * Traditional inline ayah marker — Unicode U+06DD (۝) with the ayah number
+ * in Arabic-Indic numerals nested inside, sized ~65 % of the body font.
+ *
+ * Rendered as an [AnnotatedString] span so it participates in the line's
+ * text layout (no floating badge, no Material icon). This is a text-marker,
+ * not a UI badge — flip to a rosette-glyph implementation later without
+ * changing callers if the reference image calls for it.
+ */
+private fun androidx.compose.ui.text.AnnotatedString.Builder.appendAyahMarker(
+    ayahNumber: Int,
+    accent: androidx.compose.ui.graphics.Color,
+    fontSizeSp: Float,
+) {
+    withStyle(SpanStyle(color = accent, fontSize = (fontSizeSp * 0.65f).sp)) {
+        append(" ۝" + toArabicNumerals(ayahNumber) + " ")
+    }
 }
 
 private const val TOTAL_PAGES = 604
